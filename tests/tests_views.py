@@ -3,9 +3,6 @@ from django.urls import reverse
 from ..models import User, Film, Director, Actor, Score, Review
 
 
-# TODO: Check urls
-
-
 class TestRegisterViews(TestCase):
     def setUp(self):
         self.client = Client()
@@ -14,7 +11,7 @@ class TestRegisterViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.register_url = reverse("register")
+        self.register_url = reverse("user_register")
 
     def test_register_view_correct_POST(self):
         response = self.client.post(self.register_url, self.data)
@@ -82,9 +79,9 @@ class TestLoginViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.login_url = reverse("login")
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.data)
+        self.client.post(reverse("user_register"), self.data)
 
     def test_login_view_correct_POST(self):
         response = self.client.post(self.login_url, self.data)
@@ -150,10 +147,10 @@ class TestProfileViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.profile_url = reverse("profile")
-        self.login_url = reverse("login")
+        self.profile_url = reverse("user_info")
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.data)
+        self.client.post(reverse("user_register"), self.data)
 
     def test_profile_view_correct_GET(self):
         self.client.post(self.login_url, self.data)
@@ -198,10 +195,10 @@ class TestUpdateProfileViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.update_url = reverse("update")
-        self.login_url = reverse("login")
+        self.update_url = reverse("user_update")
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.data)
+        self.client.post(reverse("user_register"), self.data)
 
     def test_update_view_correct_PUT(self):
         self.client.post(self.login_url, self.data)
@@ -344,10 +341,10 @@ class TestLogoutViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.logout_url = reverse("logout")
-        self.login_url = reverse("login")
+        self.logout_url = reverse("user_logout")
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.data)
+        self.client.post(reverse("user_register"), self.data)
 
     def test_logout_view_correct_POST(self):
         self.client.post(self.login_url, self.data)
@@ -388,9 +385,9 @@ class TestDeleteProfileViews(TestCase):
             "email": "em@i.l",
             "password": "testpassword",
         }
-        self.delete_url = reverse("delete")
-        self.login_url = reverse("login")
-        self.register_url = reverse("register")
+        self.delete_url = reverse("user_delete")
+        self.login_url = reverse("user_login")
+        self.register_url = reverse("user_register")
 
         self.client.post(self.register_url, self.data)
 
@@ -425,10 +422,6 @@ class TestDeleteProfileViews(TestCase):
         # Check if the user is not deleted
         self.assertEqual(User.objects.count(), 1, msg="User was deleted")
 
-    def test_delete_view_DELETE_different_user(self):
-        # TODO: Dont know how to test this
-        pass
-
 
 class TestCreateDirectorViews(TestCase):
     def setUp(self):
@@ -439,7 +432,7 @@ class TestCreateDirectorViews(TestCase):
             "nationality": "testnationality",
         }
 
-        self.create_director_url = reverse("create-director")
+        self.create_director_url = reverse("add_dir")
 
     def test_create_director_view_correct_POST(self):
         response = self.client.post(self.create_director_url, self.director_data)
@@ -504,7 +497,7 @@ class TestCreateActorViews(TestCase):
             "nationality": "testnationality",
         }
 
-        self.create_actor_url = reverse("create-actor")
+        self.create_actor_url = reverse("add_actor")
 
     def test_create_actor_view_correct_POST(self):
         response = self.client.post(self.create_actor_url, self.actor_data)
@@ -580,7 +573,7 @@ class TestCreateFilmViews(TestCase):
             "cast": self.actors_data,
         }
 
-        self.create_film_url = reverse("create-film")
+        self.create_film_url = reverse("add_film")
 
     def test_create_film_view_correct_POST(self):
         response = self.client.post(self.create_film_url, self.film_data)
@@ -671,11 +664,11 @@ class TestCreateReviewViews(TestCase):
             "comment": "testcomment",
         }
 
-        self.create_review_url = reverse("create-review", kwargs={"pk": 1})
-        self.login_url = reverse("login")
+        self.create_review_url = reverse("user_add_review", kwargs={"pk": 1})
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.user_data)
-        self.client.post(reverse("create-film"), self.film_data)
+        self.client.post(reverse("user_register"), self.user_data)
+        self.client.post(reverse("add_film"), self.film_data)
 
     def test_create_review_view_correct_POST(self):
         self.client.post(self.login_url, self.user_data)
@@ -742,7 +735,7 @@ class TestCreateReviewViews(TestCase):
         self.client.post(self.login_url, self.user_data)
 
         response = self.client.post(
-            reverse("create-review", kwargs={"pk": 99999}), self.review_data
+            reverse("user_add_review", kwargs={"pk": 99999}), self.review_data
         )
 
         # Check if the response is 404
@@ -795,10 +788,10 @@ class TestListFilmViews(TestCase):
             },
         ]
 
-        self.login_url = reverse("login")
-        self.list_url = reverse("film-list")
+        self.login_url = reverse("user_login")
+        self.list_url = reverse("film_filter")
 
-        self.client.post(reverse("register"), self.user_data)
+        self.client.post(reverse("user_register"), self.user_data)
 
     def test_list_film_view_correct_GET(self):
         self.client.post(self.login_url, self.user_data)
@@ -830,7 +823,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -855,7 +848,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -882,7 +875,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -915,7 +908,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -948,7 +941,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -978,7 +971,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
 
         response = self.client.get(self.list_url, params)
 
@@ -1023,9 +1016,9 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
         for review in review_data:
-            self.client.post(reverse("create-review", kwargs={"pk": 1}), review)
+            self.client.post(reverse("user_add_review", kwargs={"pk": 1}), review)
 
         response = self.client.get(self.list_url, params)
 
@@ -1070,9 +1063,9 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("create-film"), film)
+            self.client.post(reverse("add_film"), film)
         for review in review_data:
-            self.client.post(reverse("create-review", kwargs={"pk": 1}), review)
+            self.client.post(reverse("user_add_review", kwargs={"pk": 1}), review)
 
         response = self.client.get(self.list_url, params)
 
@@ -1099,7 +1092,7 @@ class TestListFilmViews(TestCase):
 class TestDetailFilmViews(TestCase):
     def setUp(self):
         self.client = Client()
-        self.detail_url = reverse("film-detail", kwargs={"pk": 1})
+        self.detail_url = reverse("film_info", kwargs={"pk": 1})
 
         self.user_data = {
             "username": "testuser",
@@ -1116,13 +1109,13 @@ class TestDetailFilmViews(TestCase):
             "cast": ["testactor1", "testactor2", "testactor3"],
         }
 
-        self.login_url = reverse("login")
+        self.login_url = reverse("user_login")
 
-        self.client.post(reverse("register"), self.user_data)
+        self.client.post(reverse("user_register"), self.user_data)
 
     def test_detail_film_view_correct_GET(self):
         self.client.post(self.login_url, self.user_data)
-        self.client.post(reverse("create-film"), self.film_data)
+        self.client.post(reverse("add_film"), self.film_data)
 
         response = self.client.get(self.detail_url)
 
@@ -1145,7 +1138,7 @@ class TestDetailFilmViews(TestCase):
     def test_detail_film_view_GET_no_result(self):
         self.client.post(self.login_url, self.user_data)
 
-        response = self.client.get(reverse("film-detail", args=[99999]))
+        response = self.client.get(reverse("film_info", args=[99999]))
 
         # Check if the response is 404
         self.assertEqual(
@@ -1160,9 +1153,9 @@ class TestGetFilmReviewsViews(TestCase):
         self.client = Client()
 
         self.get_reviews_url = reverse(
-            "film-reviews", kwargs={"film_id": 1, "user_id": 1}
+            "film_reviews", kwargs={"film_id": 1, "user_id": 1}
         )
-        self.login_url = reverse("login")
+        self.login_url = reverse("user_login")
 
         self.user_data = {
             "username": "testuser",
@@ -1183,12 +1176,12 @@ class TestGetFilmReviewsViews(TestCase):
             "comment": "testcomment",
         }
 
-        self.client.post(reverse("register"), self.user_data)
+        self.client.post(reverse("user_register"), self.user_data)
 
     def test_get_reviews_view_correct_GET(self):
         self.client.post(self.login_url, self.user_data)
-        self.client.post(reverse("create-film"), self.film_data)
-        self.client.post(reverse("create-review", kwargs={"pk": 1}), self.review_data)
+        self.client.post(reverse("add_film"), self.film_data)
+        self.client.post(reverse("user_add_review", kwargs={"pk": 1}), self.review_data)
 
         response = self.client.get(self.get_reviews_url)
 
