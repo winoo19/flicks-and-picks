@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..django_backend.apps.users.models import User, Director, Actor, Film, Review
+from apps.users.models import User, Director, Actor, Film, Review
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 
@@ -19,8 +19,8 @@ class TestModels(TestCase):
         self.assertTrue(user.professional)
 
         user = User.objects.create(
-            username="test_username",
-            email="em@i.l",
+            username="test_username2",
+            email="em@i.l2",
             password="test_password",
         )
         self.assertTrue(not user.professional)
@@ -32,7 +32,7 @@ class TestModels(TestCase):
         self.assertIsNone(director.nationality)
 
         director = Director.objects.create(
-            name="test_director", nationality="test_nationality"
+            name="test_director2", nationality="test_nationality"
         )
         self.assertEqual(director.nationality, "test_nationality")
 
@@ -42,7 +42,7 @@ class TestModels(TestCase):
         self.assertEqual(actor.name, "test_actor")
         self.assertIsNone(actor.nationality)
 
-        actor = Actor.objects.create(name="test_actor", nationality="test_nationality")
+        actor = Actor.objects.create(name="test_actor2", nationality="test_nationality")
         self.assertEqual(actor.nationality, "test_nationality")
 
     def test_film(self):
@@ -58,7 +58,7 @@ class TestModels(TestCase):
             genre="Action",
             description="test_description",
             duration=1.5,
-            director=director,
+            director_id=director,
         )
         film.cast.add(actor)
         film.save()
@@ -69,11 +69,19 @@ class TestModels(TestCase):
         self.assertEqual(film.genre, "Action")
         self.assertEqual(film.description, "test_description")
         self.assertEqual(film.duration, 1.5)
-        self.assertEqual(film.director, director)
+        self.assertEqual(film.director_id, director)
         self.assertEqual(film.cast.first(), actor)
 
         with self.assertRaises(ValidationError):
-            film.genre = "test_genre"
+            film = Film.objects.create(
+                name="test_film2",
+                release="2021-01-01",
+                genre="test_genre",
+                description="test_description",
+                duration=1.5,
+                director_id=director,
+            )
+            film.save()
 
     def test_review(self):
         user = User.objects.create(
@@ -92,14 +100,16 @@ class TestModels(TestCase):
         )
         film.save()
 
-        review = Review.objects.create(user=user, film=film, value=5, content="test")
+        review = Review.objects.create(
+            user_id=user, film_id=film, rating=5, content="test"
+        )
         review.save()
 
         self.assertIsInstance(review, Review)
-        self.assertEqual(review.user, user)
-        self.assertEqual(review.film, film)
-        self.assertEqual(review.value, 5)
+        self.assertEqual(review.user_id, user)
+        self.assertEqual(review.film_id, film)
+        self.assertEqual(review.rating, 5)
         self.assertEqual(review.content, "test")
 
         with self.assertRaises(IntegrityError):
-            Review.objects.create(user=user, film=film, value=7, content="test1")
+            Review.objects.create(user_id=user, film_id=film, rating=7, content="test1")

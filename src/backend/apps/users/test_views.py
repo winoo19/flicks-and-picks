@@ -1,11 +1,10 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from ..django_backend.apps.users.models import (
+from apps.users.models import (
     User,
     Film,
     Director,
     Actor,
-    Score,
     Review,
 )
 
@@ -27,11 +26,15 @@ class TestRegisterViews(TestCase):
         self.assertEqual(
             response.status_code,
             201,
-            msg=f"Response is {response.status_code}, expected 201",
+            msg=f"Response is {response.status_code}, expected 201. Response content: {response.content}",
         )
 
         # Check if the user is created
-        self.assertEqual(User.objects.count(), 1, msg="User was not created")
+        self.assertEqual(
+            User.objects.count(),
+            1,
+            msg=f"There are {User.objects.count()} users and there should be 1.",
+        )
 
         # Check if the user is created with the correct data
         user = User.objects.first()
@@ -57,11 +60,15 @@ class TestRegisterViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the user is not created
-        self.assertEqual(User.objects.count(), 0, msg="User was created")
+        self.assertEqual(
+            User.objects.count(),
+            0,
+            msg=f"There are {User.objects.count()} users and there should be 0.",
+        )
 
     def test_register_view_POST_existing_user(self):
         self.client.post(self.register_url, self.data)
@@ -71,11 +78,15 @@ class TestRegisterViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the user is not created
-        self.assertEqual(User.objects.count(), 1, msg="User was created")
+        self.assertEqual(
+            User.objects.count(),
+            1,
+            msg=f"There are {User.objects.count()} users and there should be 1.",
+        )
 
 
 class TestLoginViews(TestCase):
@@ -97,7 +108,7 @@ class TestLoginViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check cookie is set
@@ -110,7 +121,7 @@ class TestLoginViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check cookie is not set
@@ -125,7 +136,7 @@ class TestLoginViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
         # Check cookie is not set
@@ -139,7 +150,7 @@ class TestLoginViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
         # Check cookie is not set
@@ -168,7 +179,7 @@ class TestProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the user is returned
@@ -190,7 +201,7 @@ class TestProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
 
@@ -222,7 +233,7 @@ class TestUpdateProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the user is updated
@@ -256,7 +267,7 @@ class TestUpdateProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the user is updated
@@ -289,7 +300,7 @@ class TestUpdateProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
     def test_update_view_PUT_no_data(self):
@@ -301,7 +312,7 @@ class TestUpdateProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
     def test_update_view_PUT_wrong_password(self):
@@ -319,7 +330,7 @@ class TestUpdateProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
         # Check if the user is not updated
@@ -353,29 +364,29 @@ class TestLogoutViews(TestCase):
 
         self.client.post(reverse("user_register"), self.data)
 
-    def test_logout_view_correct_POST(self):
+    def test_logout_view_correct_DELETE(self):
         self.client.post(self.login_url, self.data)
 
-        response = self.client.post(self.logout_url)
+        response = self.client.delete(self.logout_url)
 
         # Check if the response is 200
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the cookie is deleted
         self.assertFalse("session" in response.cookies, msg="Cookie should be deleted")
 
-    def test_logout_view_POST_no_cookie(self):
-        response = self.client.post(self.logout_url)
+    def test_logout_view_DELETE_no_cookie(self):
+        response = self.client.delete(self.logout_url)
 
         # Check if the response is 401
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
         # Check if the cookie is not deleted
@@ -407,14 +418,18 @@ class TestDeleteProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the cookie is deleted
         self.assertFalse("session" in response.cookies, msg="Cookie should be deleted")
 
         # Check if the user is deleted
-        self.assertEqual(User.objects.count(), 0, msg="User was not deleted")
+        self.assertEqual(
+            User.objects.count(),
+            0,
+            msg=f"There are {User.objects.count()} users and there should be 0.",
+        )
 
     def test_delete_view_DELETE_no_cookie(self):
         response = self.client.delete(self.delete_url)
@@ -423,11 +438,15 @@ class TestDeleteProfileViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the user is not deleted
-        self.assertEqual(User.objects.count(), 1, msg="User was deleted")
+        self.assertEqual(
+            User.objects.count(),
+            1,
+            msg=f"There are {User.objects.count()} users and there should be 1.",
+        )
 
 
 class TestCreateDirectorViews(TestCase):
@@ -448,11 +467,15 @@ class TestCreateDirectorViews(TestCase):
         self.assertEqual(
             response.status_code,
             201,
-            msg=f"Response is {response.status_code}, expected 201",
+            msg=f"Response is {response.status_code}, expected 201. Response content: {response.content}",
         )
 
         # Check if the director is created
-        self.assertEqual(Director.objects.count(), 1, msg="Director was not created")
+        self.assertEqual(
+            Director.objects.count(),
+            1,
+            msg=f"There are {Director.objects.count()} directors and there should be 1.",
+        )
 
         # Check if the director is created with the correct data
         director = Director.objects.first()
@@ -474,11 +497,15 @@ class TestCreateDirectorViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the director is not created
-        self.assertEqual(Director.objects.count(), 0, msg="Director was created")
+        self.assertEqual(
+            Director.objects.count(),
+            0,
+            msg=f"There are {Director.objects.count()} directors and there should be 0.",
+        )
 
     def test_create_director_view_POST_existing_director(self):
         self.client.post(self.create_director_url, self.director_data)
@@ -488,11 +515,15 @@ class TestCreateDirectorViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the director is not created
-        self.assertEqual(Director.objects.count(), 1, msg="Director was created")
+        self.assertEqual(
+            Director.objects.count(),
+            1,
+            msg=f"There are {Director.objects.count()} directors and there should be 1.",
+        )
 
 
 class TestCreateActorViews(TestCase):
@@ -513,11 +544,15 @@ class TestCreateActorViews(TestCase):
         self.assertEqual(
             response.status_code,
             201,
-            msg=f"Response is {response.status_code}, expected 201",
+            msg=f"Response is {response.status_code}, expected 201. Response content: {response.content}",
         )
 
         # Check if the actor is created
-        self.assertEqual(Actor.objects.count(), 1, msg="Actor was not created")
+        self.assertEqual(
+            Actor.objects.count(),
+            1,
+            msg=f"There are {Actor.objects.count()} actors and there should be 1.",
+        )
 
         # Check if the actor is created with the correct data
         actor = Actor.objects.first()
@@ -539,11 +574,15 @@ class TestCreateActorViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the actor is not created
-        self.assertEqual(Actor.objects.count(), 0, msg="Actor was created")
+        self.assertEqual(
+            Actor.objects.count(),
+            0,
+            msg=f"There are {Actor.objects.count()} actors and there should be 0.",
+        )
 
     def test_create_actor_view_POST_existing_actor(self):
         self.client.post(self.create_actor_url, self.actor_data)
@@ -553,11 +592,15 @@ class TestCreateActorViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the actor is not created
-        self.assertEqual(Actor.objects.count(), 1, msg="Actor was created")
+        self.assertEqual(
+            Actor.objects.count(),
+            1,
+            msg=f"There are {Actor.objects.count()} actors and there should be 1.",
+        )
 
 
 class TestCreateFilmViews(TestCase):
@@ -583,17 +626,21 @@ class TestCreateFilmViews(TestCase):
         self.create_film_url = reverse("add_film")
 
     def test_create_film_view_correct_POST(self):
-        response = self.client.post(self.create_film_url, self.film_data)
+        response = self.client.post(self.create_film_url, self.film_data.copy())
 
         # Check if the response is 201
         self.assertEqual(
             response.status_code,
             201,
-            msg=f"Response is {response.status_code}, expected 201",
+            msg=f"Response is {response.status_code}, expected 201. Response content: {response.content}",
         )
 
         # Check if the film is created
-        self.assertEqual(Film.objects.count(), 1, msg="Film was not created")
+        self.assertEqual(
+            Film.objects.count(),
+            1,
+            msg=f"There are {Film.objects.count()} films and there should be 1.",
+        )
 
         # Check if the film is created with the correct data
         film = Film.objects.first()
@@ -635,17 +682,23 @@ class TestCreateFilmViews(TestCase):
 
     def test_create_film_view_POST_incorrect_actors(self):
         incorrect_actors_data = ["1 2 &%$", 1, ""]
-        response = self.client.post(self.create_film_url, self.film_data)
+        response = self.client.post(
+            self.create_film_url, {**self.film_data, "cast": incorrect_actors_data}
+        )
 
         # Check if the response is 400
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the film is not created
-        self.assertEqual(Film.objects.count(), 0, msg="Film was created")
+        self.assertEqual(
+            Film.objects.count(),
+            0,
+            msg=f"There are {Film.objects.count()} films and there should be 0.",
+        )
 
 
 class TestCreateReviewViews(TestCase):
@@ -669,13 +722,14 @@ class TestCreateReviewViews(TestCase):
         self.review_data = {
             "score": 5,
             "comment": "testcomment",
+            "film_id": 1,
         }
 
-        self.create_review_url = reverse("user_add_review", kwargs={"pk": 1})
+        self.create_review_url = reverse("user_add_review")
         self.login_url = reverse("user_login")
 
         self.client.post(reverse("user_register"), self.user_data)
-        self.client.post(reverse("add_film"), self.film_data)
+        self.client.post(reverse("add_film"), self.film_data.copy())
 
     def test_create_review_view_correct_POST(self):
         self.client.post(self.login_url, self.user_data)
@@ -686,11 +740,15 @@ class TestCreateReviewViews(TestCase):
         self.assertEqual(
             response.status_code,
             201,
-            msg=f"Response is {response.status_code}, expected 201",
+            msg=f"Response is {response.status_code}, expected 201. Response content: {response.content}",
         )
 
         # Check if the review is created
-        self.assertEqual(Review.objects.count(), 1, msg="Review was not created")
+        self.assertEqual(
+            Review.objects.count(),
+            1,
+            msg=f"There are {Review.objects.count()} reviews and there should be 1.",
+        )
 
         # Check if the review is created with the correct data
         review = Review.objects.first()
@@ -717,11 +775,15 @@ class TestCreateReviewViews(TestCase):
         self.assertEqual(
             response.status_code,
             401,
-            msg=f"Response is {response.status_code}, expected 401",
+            msg=f"Response is {response.status_code}, expected 401. Response content: {response.content}",
         )
 
         # Check if the review is not created
-        self.assertEqual(Review.objects.count(), 0, msg="Review was created")
+        self.assertEqual(
+            Review.objects.count(),
+            0,
+            msg=f"There are {Review.objects.count()} reviews and there should be 0.",
+        )
 
     def test_create_review_view_POST_no_data(self):
         self.client.post(self.login_url, self.user_data)
@@ -732,28 +794,36 @@ class TestCreateReviewViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )
 
         # Check if the review is not created
-        self.assertEqual(Review.objects.count(), 0, msg="Review was created")
+        self.assertEqual(
+            Review.objects.count(),
+            0,
+            msg=f"There are {Review.objects.count()} reviews and there should be 0.",
+        )
 
     def test_create_review_view_POST_wrong_film(self):
         self.client.post(self.login_url, self.user_data)
 
         response = self.client.post(
-            reverse("user_add_review", kwargs={"pk": 99999}), self.review_data
+            reverse("user_add_review"), {**self.review_data, "film_id": 999999}
         )
 
         # Check if the response is 404
         self.assertEqual(
             response.status_code,
             404,
-            msg=f"Response is {response.status_code}, expected 404",
+            msg=f"Response is {response.status_code}, expected 404. Response content: {response.content}",
         )
 
         # Check if the review is not created
-        self.assertEqual(Review.objects.count(), 0, msg="Review was created")
+        self.assertEqual(
+            Review.objects.count(),
+            0,
+            msg=f"There are {Review.objects.count()} reviews and there should be 0.",
+        )
 
 
 class TestListFilmViews(TestCase):
@@ -809,7 +879,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -830,7 +900,7 @@ class TestListFilmViews(TestCase):
 
         self.client.post(self.login_url, self.user_data)
         for film in self.film_data:
-            self.client.post(reverse("add_film"), film)
+            self.client.post(reverse("add_film"), film.copy())
 
         response = self.client.get(self.list_url, params)
 
@@ -838,7 +908,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -863,7 +933,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -890,7 +960,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -923,7 +993,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -956,7 +1026,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -986,7 +1056,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -1010,14 +1080,17 @@ class TestListFilmViews(TestCase):
             {
                 "score": 5,
                 "comment": "testcomment1",
+                "film_id": 1,
             },
             {
                 "score": 7,
                 "comment": "testcomment2",
+                "film_id": 2,
             },
             {
                 "score": 9,
                 "comment": "testcomment3",
+                "film_id": 3,
             },
         ]
 
@@ -1025,7 +1098,7 @@ class TestListFilmViews(TestCase):
         for film in self.film_data:
             self.client.post(reverse("add_film"), film)
         for review in review_data:
-            self.client.post(reverse("user_add_review", kwargs={"pk": 1}), review)
+            self.client.post(reverse("user_add_review"), review)
 
         response = self.client.get(self.list_url, params)
 
@@ -1033,7 +1106,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -1057,14 +1130,17 @@ class TestListFilmViews(TestCase):
             {
                 "score": 5,
                 "comment": "testcomment1",
+                "film_id": 1,
             },
             {
                 "score": 7,
                 "comment": "testcomment2",
+                "film_id": 2,
             },
             {
                 "score": 9,
                 "comment": "testcomment3",
+                "film_id": 3,
             },
         ]
 
@@ -1072,7 +1148,7 @@ class TestListFilmViews(TestCase):
         for film in self.film_data:
             self.client.post(reverse("add_film"), film)
         for review in review_data:
-            self.client.post(reverse("user_add_review", kwargs={"pk": 1}), review)
+            self.client.post(reverse("user_add_review"), review)
 
         response = self.client.get(self.list_url, params)
 
@@ -1080,7 +1156,7 @@ class TestListFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the films are returned
@@ -1099,7 +1175,7 @@ class TestListFilmViews(TestCase):
 class TestDetailFilmViews(TestCase):
     def setUp(self):
         self.client = Client()
-        self.detail_url = reverse("film_info", kwargs={"pk": 1})
+        self.detail_url = reverse("film_info", args=[1])
 
         self.user_data = {
             "username": "testuser",
@@ -1130,7 +1206,7 @@ class TestDetailFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the film is returned
@@ -1151,7 +1227,7 @@ class TestDetailFilmViews(TestCase):
         self.assertEqual(
             response.status_code,
             404,
-            msg=f"Response is {response.status_code}, expected 404",
+            msg=f"Response is {response.status_code}, expected 404. Response content: {response.content}",
         )
 
 
@@ -1159,9 +1235,7 @@ class TestGetFilmReviewsViews(TestCase):
     def setUp(self):
         self.client = Client()
 
-        self.get_reviews_url = reverse(
-            "film_reviews", kwargs={"film_id": 1, "user_id": 1}
-        )
+        self.get_reviews_url = reverse("film_reviews", args=[1])
         self.login_url = reverse("user_login")
 
         self.user_data = {
@@ -1181,6 +1255,7 @@ class TestGetFilmReviewsViews(TestCase):
         self.review_data = {
             "score": 5,
             "comment": "testcomment",
+            "film_id": 1,
         }
 
         self.client.post(reverse("user_register"), self.user_data)
@@ -1188,7 +1263,7 @@ class TestGetFilmReviewsViews(TestCase):
     def test_get_reviews_view_correct_GET(self):
         self.client.post(self.login_url, self.user_data)
         self.client.post(reverse("add_film"), self.film_data)
-        self.client.post(reverse("user_add_review", kwargs={"pk": 1}), self.review_data)
+        self.client.post(reverse("user_add_review"), self.review_data)
 
         response = self.client.get(self.get_reviews_url)
 
@@ -1196,7 +1271,7 @@ class TestGetFilmReviewsViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the reviews are returned
@@ -1214,7 +1289,7 @@ class TestGetFilmReviewsViews(TestCase):
         self.assertEqual(
             response.status_code,
             200,
-            msg=f"Response is {response.status_code}, expected 200",
+            msg=f"Response is {response.status_code}, expected 200. Response content: {response.content}",
         )
 
         # Check if the reviews are returned
@@ -1235,5 +1310,5 @@ class TestGetFilmReviewsViews(TestCase):
         self.assertEqual(
             response.status_code,
             400,
-            msg=f"Response is {response.status_code}, expected 400",
+            msg=f"Response is {response.status_code}, expected 400. Response content: {response.content}",
         )

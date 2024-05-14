@@ -32,7 +32,8 @@ from apps.users.serializers import (
 
 
 # To print in the server console, use:
-import sys
+# import sys
+
 # print("message", file=sys.stderr)
 
 
@@ -42,7 +43,7 @@ class UserRegisterView(generics.CreateAPIView):
     permission_classes: list[permissions.BasePermission] = [permissions.AllowAny]
 
     def post(self, request: Request) -> Response:
-        print(request.data, file=sys.stderr)
+        # print(request.data, file=sys.stderr)
         serializer: serializers.Serializer = self.get_serializer(data=request.data)
         response: Response
         if serializer.is_valid():
@@ -487,7 +488,7 @@ class FilmDetailView(generics.RetrieveAPIView):
             serializer: serializers.Serializer = FilmSerializer(film)
             response = Response(serializer.data, status=status.HTTP_200_OK)
 
-        except ValueError as error:
+        except ValidationError as error:
             response = Response(
                 {"error": error.message},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -867,7 +868,7 @@ class AggregateFilmView(generics.CreateAPIView):
         with transaction.atomic():  # Ensure all or nothing persistence
 
             try:
-                film_data: dict = request.data
+                film_data: dict = dict(request.data)
 
                 # Handle Director
                 if "director" not in film_data.keys():
