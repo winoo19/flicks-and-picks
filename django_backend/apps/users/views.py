@@ -32,7 +32,7 @@ from apps.users.serializers import (
 
 
 # To print in the server console, use:
-# import sys
+import sys
 # print("message", file=sys.stderr)
 
 
@@ -42,6 +42,7 @@ class UserRegisterView(generics.CreateAPIView):
     permission_classes: list[permissions.BasePermission] = [permissions.AllowAny]
 
     def post(self, request: Request) -> Response:
+        print(request.data, file=sys.stderr)
         serializer: serializers.Serializer = self.get_serializer(data=request.data)
         response: Response
         if serializer.is_valid():

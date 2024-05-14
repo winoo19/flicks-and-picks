@@ -48,7 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
             "style": {"input_type": "password"},
         }  # Hide password after serialization
 
-    def validate_username(value: str) -> str:
+    def validate_username(self, value: str) -> str:
         if len(value) < 4 or len(value) > 15:
             raise serializers.ValidationError(
                 {"username": ["Username must have between 4 and 15 characters."]}
