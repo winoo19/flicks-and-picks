@@ -35,8 +35,8 @@ jobs:
     steps:
       - name: Run django tests
         run: |
-          python manage.py test --pattern="tests/test_django_*.py"
+          python manage.py test --pattern="../tests/test_django_*.py"
 
       - name: Run end-to-end tests
         run: |
-          python manage.py test --pattern="tests/test_e2e.py"
+          python manage.py test --pattern="../tests/test_e2e.py"
