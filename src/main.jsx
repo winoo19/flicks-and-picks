@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom/client"
 import ListPage from "./ListPage.jsx"
-import { login, logout, register, profile, unsubscribe, film_details, film_review } from "./common/api.js";
+import { logout, register, profile, unsubscribe, film_details, film_review } from "./common/api.js";
 import App from "./App.jsx"
 import Film from "./Film.jsx"
 import Error from "./Error.jsx"
@@ -18,17 +18,15 @@ const router = createBrowserRouter([{
     path: "",
     element: <ListPage />
   },{
-    path: "film/1",
+    path: "film/:id",
     element: <Film />,
     errorElement: <Error />,
-    // loader: ({ params }) => load_film_review(params.filmId, params.userId),
-    // action: update_review
-  // }
+    loader: ({ params }) => loadFilmReview(params.filmId, params.userId),
+    action: updateReview
   }],
 }, {
   path: "/login",
   element: <Login />,
-  // action: entry
 }, {
   path: "/register",
   element: <Register />,
@@ -42,12 +40,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
 )
 
 // Functions
-
-async function load_film_review(film_id, user_id) {
+async function loadFilmReview(filmId, userId) {
   try {
     const [filmDetails, filmReview] = await Promise.all([
-      film_details(film_id),
-      film_review(film_id, user_id)
+      film_details(filmId),
+      film_review(filmId, userId)
     ]);
 
     if (filmDetails.ok && filmReview) {
@@ -63,10 +60,14 @@ async function load_film_review(film_id, user_id) {
 
 async function registerUser({ request }) {
   const formData = await request.formData();
-  const usuario = Object.fromEntries(formData);
-  const registerRes = await register(usuario);
-  if (registerRes.ok) return redirect("/?registered");
+  const user = Object.fromEntries(formData);
+  const registerRes = await register(user);
+  if (registerRes.ok) return redirect("/login/?registered");
   return { status: registerRes.status };
+}
+
+async function updateReview() {
+  return 0;
 }
 
 async function exit() {

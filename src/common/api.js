@@ -1,13 +1,13 @@
 export function login(email, password) {
   const body = JSON.stringify({email, password});
-  return fetch("/users/login", {method: "post", body});
+  return fetch("/user/login", {method: "post", body});
 }
 export function logout() {
-  return fetch("/users/logout", {method: "delete"});
+  return fetch("/user/logout", {method: "delete"});
 }
 export function register(data) {
   const body = JSON.stringify(data);
-  return fetch("/users/register", {method: "post", body});
+  return fetch("/user/register", {method: "post", body});
 }
 export function profile(data) {
   if (!data) return fetch("/users/profile");

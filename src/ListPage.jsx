@@ -12,7 +12,7 @@ function ListPage({ filmList, currentPage, setCurrentPage, isLogged }) {
     <div className="container">
       {/* <h1>Nuestras películas</h1> */}
       {/* <PageFilter currentPage={currentPage} setCurrentPage={setCurrentPage} /> */}
-      <FilmList filmList={filmList} isLogged={isLogged}/>
+      <FilmList filmList={filmList} isLogged={isLogged} />
     </div>
   </>
 }
@@ -39,8 +39,8 @@ function FilmList({ filmList, isLogged }) {
     <div>
       {filmList.map((film, index) => (
         <Fragment key={film.id}>
-          <FilmPreview film={film} isLogged={isLogged}/>
-          {index < filmList.length - 1 && <Divider variant="middle" />} {/* Render separator if not last film */}
+          <FilmPreview film={film} isLogged={isLogged} />
+          {index < filmList.length - 1 && <Divider variant="middle" />}
         </Fragment>
       ))}
     </div>
@@ -49,12 +49,32 @@ function FilmList({ filmList, isLogged }) {
 
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLogged , filmList, setFilmList] = useOutletContext();
+  const [isLogged, filmList, setFilmList] = useOutletContext();
 
   useEffect(() => {
     const fetchFilms = async () => {
+      const body = JSON.stringify({
+        "film_name": null,
+        "director_name": null,
+        "actor_name": null,
+        "genre": null,
+        "description": null,
+        "min_release": null,
+        "max_release": null,
+        "min_rating": null,
+        "max_rating": null
+      });
       try {
-        const response = await fetch("../films.json");
+        // const response = await fetch("../films.json");
+        const response = await fetch("http://127.0.0.1:8000/films/", {
+          method: "post",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          credentials: "include",
+          body: body
+        });
+        console.log(response);
         if (!response.ok) {
           throw new Error("Couldn't load film list");
         }
@@ -65,10 +85,11 @@ function App() {
       }
     };
     fetchFilms();
-  }, [currentPage]);
+  }, []);
+
 
   return (
-    <ListPage filmList={filmList} currentPage={currentPage} setCurrentPage={setCurrentPage} isLogged={isLogged}/>
+    <ListPage filmList={filmList} currentPage={currentPage} setCurrentPage={setCurrentPage} isLogged={isLogged} />
   )
 }
 

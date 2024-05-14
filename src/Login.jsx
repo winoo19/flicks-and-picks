@@ -17,8 +17,10 @@ export default function Login() {
     // Muestra el error de login a menos que estemos enviando algo
     const credIncorrectas = !busy && responseError;
     // Si el registro tuvo éxito, nos redirigieron a login con este query param
-    const registrado = useLocation().search === "?registered";
-    const setIsLogged = useLocation();
+    
+    const location = useLocation();
+    const { setIsLogged } = location.state || {};
+    const registrado = location.search === "?registered";
 
     const entry = async ({ request }) => {
         const formData = await request.formData();

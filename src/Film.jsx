@@ -27,8 +27,8 @@ function Film() {
   }
 
   const navigation = useNavigation();
-  const busy = navigation.state === 'submitting' || 
-               navigation.state === 'loading';
+  const busy = navigation.state === 'submitting' ||
+    navigation.state === 'loading';
 
   if (!filmDetails) {
     return <div>Loading...</div>;
@@ -49,12 +49,12 @@ function Film() {
     <div className="film-details" id="filmDetails">
       <div className="first-column-details">
         <div className="back-button">
-        <NavLink to={"/"}>
-          <IconButton>
-            <ArrowBackIcon></ArrowBackIcon>
-          </IconButton>
-          <Button variant="text">BACK TO FILMS</Button>
-        </NavLink>
+          <NavLink to={"/"}>
+            <IconButton>
+              <ArrowBackIcon></ArrowBackIcon>
+            </IconButton>
+            <Button variant="text">BACK TO FILMS</Button>
+          </NavLink>
         </div>
         <img className="details-image" src={filmDetails.image_url} alt="Thumbnail" />
       </div>
@@ -71,27 +71,37 @@ function Film() {
         <p> <strong>Length:</strong> {filmDetails.length}</p>
         <p> <strong>Cast:</strong> {castString}</p>
         <p> <strong>Year:</strong> {filmDetails.year}</p>
-        <Form method="put">
-        <p> <strong>Review:</strong></p>
-        {/* <label htmlFor="review"><strong>Review:</strong></label> */}
-        <TextField margin="dense" size="small" disabled={busy}
-                label="score"
-                name="score"
-                type="number"
-                defaultValue={filmReview.review ? filmReview.review : ""}
-              />
-        <TextField margin="dense" size="small" disabled={busy}
-                label="score"
-                name="score"
-                type="number"
-                defaultValue={filmReview.score ? filmReview.score : ""}
-              />
-        <Button type="submit" variant="outlined" color="warning" size="small" disabled={busy}>
+        <div>
+          <Form method="put" className="review-section">
+            <p> <strong>Review:</strong></p>
+            {/* <label htmlFor="review"><strong>Review:</strong></label> */}
+            <TextField margin="dense" disabled={busy}
+              label="Review"
+              name="review"
+              multiline
+              rows={3}
+              fullWidth="false"
+              defaultValue={filmReview.review ? filmReview.review : ""}
+            />
+            <TextField margin="dense" size="small" disabled={busy}
+              label="Score"
+              name="score"
+              type="number"
+              style={{ width: "10%" }}
+              defaultValue={filmReview.score ? filmReview.score : ""}
+              InputProps={{
+                inputProps: {
+                  min: 1,
+                  max: 10,
+                },
+              }}
+            />
+            <Button type="submit" style={{ width: "10%" }} variant="outlined" color="warning" size="small" disabled={busy} margin="dense">
               Update
             </Button>
-        </Form>
+          </Form>
+        </div>
       </div>
-
     </div>
 
   );

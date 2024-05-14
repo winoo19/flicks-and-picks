@@ -16,7 +16,7 @@ function FilmPreview({ film, isLogged }) {
     };
   
     return (
-      <div className="film-details" id="filmDetails">
+      <div className="film-details" id={film.id}>
         <NavLink to={isLogged ? `film/${film.id}` : "/login"}>
           <img
             src={film.image_url}

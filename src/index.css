@@ -89,15 +89,13 @@ nav {
   color: black;
 }
 
-.review {
-  width: 80%;
-  height: 20vh;
-  padding: 1.5vw;
-  border: 1px solid #ccc;
-  border-radius: 0.5vw;
-  font-size: 1vw;
-  line-height: 1;
-  resize: vertical; 
+.review-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.update-button {
+  margin: top 30vh;
 }
 
 a {
