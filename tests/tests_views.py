@@ -1,6 +1,13 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from ..models import User, Film, Director, Actor, Score, Review
+from ..django_backend.apps.users.models import (
+    User,
+    Film,
+    Director,
+    Actor,
+    Score,
+    Review,
+)
 
 
 class TestRegisterViews(TestCase):

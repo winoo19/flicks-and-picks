@@ -1,5 +1,5 @@
 from django.test import TestCase
-from ..models import User, Director, Actor, Film, Review
+from ..django_backend.apps.users.models import User, Director, Actor, Film, Review
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 

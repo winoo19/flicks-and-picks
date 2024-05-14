@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from ..models import User, Review
+from ..django_backend.apps.users.models import User, Review
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 
