@@ -356,7 +356,7 @@ class TestLogoutViews(TestCase):
     def test_logout_view_correct_POST(self):
         self.client.post(self.login_url, self.data)
 
-        response = self.client.post(self.logout_url)
+        response = self.client.delete(self.logout_url)
 
         # Check if the response is 200
         self.assertEqual(
@@ -369,7 +369,7 @@ class TestLogoutViews(TestCase):
         self.assertFalse("session" in response.cookies, msg="Cookie should be deleted")
 
     def test_logout_view_POST_no_cookie(self):
-        response = self.client.post(self.logout_url)
+        response = self.client.delete(self.logout_url)
 
         # Check if the response is 401
         self.assertEqual(
