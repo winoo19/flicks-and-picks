@@ -1,0 +1,54 @@
+{
+    "films": [
+    {
+        "name": "Inception",
+        "genre": "Sci-Fi",
+        "duration": 148,
+        "director": "Christopher Nolan",
+        "cast": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page", "Tom Hardy"],
+        "description": "A thief who enters the dreams of others to steal their secrets gets one last job.",
+        "image_url": "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_.jpg",
+        "release": "2010-01-01"
+    },
+    {
+        "name": "The Shawshank Redemption",
+        "genre": "Drama",
+        "duration": 142,
+        "director": "Frank Darabont",
+        "cast": ["Tim Robbins", "Morgan Freeman", "Bob Gunton"],
+        "description": "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+        "image_url": "https://m.media-amazon.com/images/M/MV5BNDE3ODcxYzMtY2YzZC00NmNlLWJiNDMtZDViZWM2MzIxZDYwXkEyXkFqcGdeQXVyNjAwNDUxODI@._V1_.jpg",
+        "release": "1994-01-01"
+    },
+    {
+        "name": "Interstellar",
+        "genre": "Sci-Fi",
+        "duration": 169,
+        "director": "Christopher Nolan",
+        "cast": ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain", "Michael Caine"],
+        "description": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
+        "image_url": "https://www.google.com/url?sa=i&url=https%3A%2F%2Fm.imdb.com%2Ftitle%2Ftt0816692%2F%3Flanguage%3Des-es&psig=AOvVaw3r84_yPJ9D-PNNxR-hhdAF&ust=1713541093714000&source=images&cd=vfe&opi=89978449&ved=0CBIQjRxqFwoTCOj1mpSMzIUDFQAAAAAdAAAAABAE",
+        "release": "2014-01-01"
+    },
+    {
+        "name": "The Godfather",
+        "genre": "Crime",
+        "duration": 175,
+        "director": "Francis Ford Coppola",
+        "cast": ["Marlon Brando", "Al Pacino", "James Caan"],
+        "description": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
+        "image_url": "https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+        "release": "1972-01-01"
+    },
+    {
+        "name": "Pulp Fiction",
+        "genre": "Crime",
+        "duration": 154,
+        "director": "Quentin Tarantino",
+        "cast": ["John Travolta", "Uma Thurman", "Samuel L. Jackson", "Bruce Willis"],
+        "description": "The lives of two mob hitmen, a boxer, a gangster's wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+        "image_url": "https://m.media-amazon.com/images/M/MV5BNGNhMDIzZTUtNTBlZi00MTRlLWFjM2ItYzViMjE3YzI5MjljXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_.jpg",
+        "release": "1994-01-01"
+    }
+]
+}
