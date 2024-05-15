@@ -849,8 +849,8 @@ class ReviewSerializer(serializers.ModelSerializer):
                 {"user_id": ["User ID must be an integer."]}
             )
         try:
-            instance: Film = User.objects.get(pk=value)
-        except Film.DoesNotExist:
+            instance: User = User.objects.get(pk=value)
+        except User.DoesNotExist:
             raise serializers.ValidationError({"user_id": ["Invalid user ID."]})
         return instance
 
