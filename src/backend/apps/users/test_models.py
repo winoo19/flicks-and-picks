@@ -5,28 +5,28 @@ from django.core.exceptions import ValidationError
 
 
 class TestModels(TestCase):
-    def test_user(self):
-        user = User.objects.create(
-            username="test_username",
-            email="em@i.l",
-            password="test_password",
+    def test_user(self) -> None:
+        user: User = User.objects.create(
+            username="test_username1",
+            email="test1@test1.com",
+            password="Password1",
             professional=True,
         )
         self.assertIsInstance(user, User)
-        self.assertEqual(user.username, "test_username")
-        self.assertEqual(user.email, "em@i.l")
-        self.assertEqual(user.password, "test_password")
+        self.assertEqual(user.username, "test_username1")
+        self.assertEqual(user.email, "test1@test1.com")
+        self.assertEqual(user.password, "Password1")
         self.assertTrue(user.professional)
 
         user = User.objects.create(
             username="test_username2",
-            email="em@i.l2",
-            password="test_password",
+            email="test2@test2.com",
+            password="Password1",
         )
         self.assertTrue(not user.professional)
 
-    def test_director(self):
-        director = Director.objects.create(name="test_director")
+    def test_director(self) -> None:
+        director: Director = Director.objects.create(name="test_director")
         self.assertIsInstance(director, Director)
         self.assertEqual(director.name, "test_director")
         self.assertIsNone(director.nationality)
@@ -36,8 +36,8 @@ class TestModels(TestCase):
         )
         self.assertEqual(director.nationality, "test_nationality")
 
-    def test_actor(self):
-        actor = Actor.objects.create(name="test_actor")
+    def test_actor(self) -> None:
+        actor: Actor = Actor.objects.create(name="test_actor")
         self.assertIsInstance(actor, Actor)
         self.assertEqual(actor.name, "test_actor")
         self.assertIsNone(actor.nationality)
@@ -45,11 +45,11 @@ class TestModels(TestCase):
         actor = Actor.objects.create(name="test_actor2", nationality="test_nationality")
         self.assertEqual(actor.nationality, "test_nationality")
 
-    def test_film(self):
-        director = Director.objects.create(name="test_director")
+    def test_film(self) -> None:
+        director: Director = Director.objects.create(name="test_director")
         director.save()
 
-        actor = Actor.objects.create(name="test_actor")
+        actor: Actor = Actor.objects.create(name="test_actor")
         actor.save()
 
         film = Film.objects.create(
@@ -73,25 +73,25 @@ class TestModels(TestCase):
         self.assertEqual(film.cast.first(), actor)
 
         with self.assertRaises(ValidationError):
-            film = Film.objects.create(
+            film: Film = Film.objects.create(
                 name="test_film2",
                 release="2021-01-01",
-                genre="test_genre",
+                genre="incorrect genre",
                 description="test_description",
                 duration=1.5,
                 director_id=director,
             )
             film.save()
 
-    def test_review(self):
-        user = User.objects.create(
+    def test_review(self) -> None:
+        user: User = User.objects.create(
             username="test_username",
-            email="em@i.l",
-            password="test_password",
+            email="test@test.com",
+            password="Password1",
         )
         user.save()
 
-        film = Film.objects.create(
+        film: Film = Film.objects.create(
             name="test_film",
             release="2021-01-01",
             genre="Action",
@@ -100,7 +100,7 @@ class TestModels(TestCase):
         )
         film.save()
 
-        review = Review.objects.create(
+        review: Review = Review.objects.create(
             user_id=user, film_id=film, rating=5, content="test"
         )
         review.save()

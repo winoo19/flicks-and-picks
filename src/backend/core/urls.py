@@ -42,21 +42,21 @@ from apps.users.views import (
 )
 
 user_urls: list[path] = [
-    path("user/register/", UserRegisterView.as_view(), name="user_register"),
-    path("user/login/", UserLoginView.as_view(), name="user_login"),
-    path("user/profile-info/", UserProfileInfoView.as_view(), name="user_info"),
-    path("user/profile-update/", UserProfileUpdateView.as_view(), name="user_update"),
-    path("user/logout/", UserLogoutView.as_view(), name="user_logout"),
-    path("user/delete/", UserDeleteView.as_view(), name="user_delete"),
-    path("user/add-review/", PostReviewView.as_view(), name="user_add_review"),
-    path("user/delete-review/", DeleteReviewView.as_view(), name="user_del_review"),
-    path("user/history/", RetrieveReviewsView.as_view(), name="user_history"),
+    path("users/register/", UserRegisterView.as_view(), name="user_register"),
+    path("users/login/", UserLoginView.as_view(), name="user_login"),
+    path("users/profile-info/", UserProfileInfoView.as_view(), name="user_info"),
+    path("users/profile-update/", UserProfileUpdateView.as_view(), name="user_update"),
+    path("users/logout/", UserLogoutView.as_view(), name="user_logout"),
+    path("users/delete/", UserDeleteView.as_view(), name="user_delete"),
+    path("users/add-review/", PostReviewView.as_view(), name="user_add_review"),
+    path("users/delete-review/", DeleteReviewView.as_view(), name="user_del_review"),
+    path("users/history/", RetrieveReviewsView.as_view(), name="user_history"),
 ]
 
 site_urls: list[path] = [
     path("films/", FilterFilmsView.as_view(), name="film_filter"),
-    path("film/<int:id>/", FilmDetailView.as_view(), name="film_info"),
-    path("film/<int:id>/reviews/", FilmReviewsView.as_view(), name="film_reviews"),
+    path("films/<int:id>/", FilmDetailView.as_view(), name="film_info"),
+    path("films/<int:id>/reviews/", FilmReviewsView.as_view(), name="film_reviews"),
 ]
 
 admin_urls: list[path] = [

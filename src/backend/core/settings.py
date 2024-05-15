@@ -58,6 +58,7 @@ THIRD_PARTY_APPS: list[str] = [
     "drf_spectacular",
     "whitenoise.runserver_nostatic",
     "debug_toolbar",
+    "corsheaders",
 ]
 
 INSTALLED_APPS: list[str] = [*DEFAULT_APPS, *CUSTOM_APPS, *THIRD_PARTY_APPS]
@@ -72,9 +73,11 @@ MIDDLEWARE: list[str] = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
+CORS_ORIGIN_ALLOW_ALL = True
 
 TEMPLATES: list = [
     {
@@ -153,7 +156,31 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS: list[str] = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 REST_FRAMEWORK: dict[str, str] = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 

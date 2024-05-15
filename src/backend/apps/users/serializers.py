@@ -144,6 +144,29 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             "new_password",
         ]
 
+    def to_internal_value(self, qdata: QueryDict) -> dict:
+        """
+        Override to prevent automatic conversion of data. Apply field validation
+        directly to the raw input.
+        """
+
+        data: dict = dict(qdata)
+
+        # Validate User Attributes
+        current_password: int | None = data.get("current_password", None)
+        data["current_password"] = self.validate_current_password(current_password)
+        username: str | None = data.get("username", None)
+        if username is not None and not username == "":
+            data["username"] = self.validate_username(username)
+        email: str | None = data.get("email", None)
+        if email is not None and not email == "":
+            data["email"] = self.validate_email(email)
+        new_password: str | None = data.get("new_password", None)
+        if new_password is not None and not new_password == "":
+            data["new_password"] = self.validate_new_password(new_password)
+
+        return data
+
     def validate_current_password(self, value: str) -> str:
         # Check that the current_password field is correct.
         if not self.instance.check_password(value):
@@ -190,11 +213,16 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def update(self, instance: User, validated_data: dict) -> User:
+
         # remove the current_password field from the validated_data dictionary
         validated_data.pop("current_password", None)
-        new_password: str = validated_data.pop("password", None)
-        if not new_password:
+        new_password: str = validated_data.pop("new_password", None)
+        if new_password:
             instance.set_password(new_password)
+        if validated_data.get("username", None) in [None, ""]:
+            validated_data.pop("username", None)
+        if validated_data.get("email", None) in [None, ""]:
+            validated_data.pop("email", None)
         return super().update(instance, validated_data)
 
 
@@ -303,7 +331,7 @@ class ActorSerializer(serializers.ModelSerializer):
         pattern = r"^\w+\s+\w+"  # pattern to check if string contains at least 2 words
         if not bool(re.match(pattern, value)):
             raise serializers.ValidationError(
-                {"name": ["Director name must be at least 2 words long."]}
+                {"name": ["Actor name must be at least 2 words long."]}
             )
         if len(value) > models.NAME_MAX_LENGTH:
             max_lenght: int = models.NAME_MAX_LENGTH
@@ -358,11 +386,13 @@ class FilmSerializer(serializers.ModelSerializer):
             "cast",
         ]
 
-    def to_internal_value(self, data: dict) -> dict:
+    def to_internal_value(self, qdata: QueryDict) -> dict:
         """
         Override to prevent automatic conversion of data. Apply field validation
         directly to the raw input.
         """
+
+        data: dict = dict(qdata)
 
         # Validate Film Attributes
         name: str | None = data.get("name", None)
@@ -415,7 +445,6 @@ class FilmSerializer(serializers.ModelSerializer):
                 for date_format, pattern in patterns.items():
                     if re.match(pattern, value):
                         format_match = True
-                        print(f"Matched {date_format} format", file=sys.stderr)
                         return datetime.datetime.strptime(value, date_format)
 
                 if not format_match:
@@ -479,7 +508,6 @@ class FilmSerializer(serializers.ModelSerializer):
         return instance
 
     def validate_cast(self, value: list[int]) -> list[Actor]:
-        print("validate_cast", file=sys.stderr)
         if value is None or not type(value) is list:
             raise serializers.ValidationError(
                 {"cast": ["Cast must be a list of names (list[str])."]}
@@ -539,7 +567,6 @@ class FilmSerializer(serializers.ModelSerializer):
         instance.director = validated_data.get("director_id", instance.director)
 
         if "cast" in validated_data:
-            print(f"validated_data['cast']: {validated_data['cast']}", file=sys.stderr)
             instance.cast.set(validated_data["cast"])
 
         instance.save()
@@ -576,7 +603,7 @@ class FilmFilterSerializer(serializers.Serializer):
         directly to the raw input.
         """
 
-        data: dict = qdata.dict()
+        data: dict = dict(qdata)
 
         # Validate Film Attributes
         film_name: str | None = data.get("film_name", None)
@@ -641,7 +668,7 @@ class FilmFilterSerializer(serializers.Serializer):
         if len(value) > models.NAME_MAX_LENGTH:
             max_lenght: int = models.NAME_MAX_LENGTH
             message: str = f"Actor name cannot exceed {max_lenght} characters."
-            raise serializers.ValidationError({"actor_name": [message]})
+            raise serializers.ValidationError({"director_name": [message]})
         return value
 
     def validate_genre(self, value: str) -> str:
@@ -679,7 +706,6 @@ class FilmFilterSerializer(serializers.Serializer):
                 for date_format, pattern in patterns.items():
                     if re.match(pattern, value):
                         format_match = True
-                        print(f"Matched {date_format} format", file=sys.stderr)
                         return datetime.datetime.strptime(value, date_format)
 
                 if not format_match:
@@ -690,7 +716,6 @@ class FilmFilterSerializer(serializers.Serializer):
 
             except ValueError:
                 raise serializers.ValidationError({"min_release": ["Invalid date."]})
-        print(type(value), file=sys.stderr)
         return value
 
     def validate_max_release(self, value: str) -> str:
@@ -710,7 +735,6 @@ class FilmFilterSerializer(serializers.Serializer):
                 for date_format, pattern in patterns.items():
                     if re.match(pattern, value):
                         format_match = True
-                        print(f"Matched {date_format} format", file=sys.stderr)
                         return datetime.datetime.strptime(value, date_format)
 
                 if not format_match:
@@ -789,8 +813,6 @@ class ReviewSerializer(serializers.ModelSerializer):
 
         film_id: int | None = data.get("film_id", None)
         data["film_id"] = self.validate_film_id(film_id)
-
-        print(data, file=sys.stderr)
 
         return data
 

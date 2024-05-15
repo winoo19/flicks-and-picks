@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import PermissionDenied
 
 # from rest_framework.authentication import SessionAuthentication
 # from rest_framework.exceptions import PermissionDenied
@@ -30,11 +31,16 @@ from apps.users.serializers import (
     DeleteReviewSerializer,
 )
 
+# To display headers and authenticators of a view request:
+# print("\nRequest headers:")
+# for header, value in request.META.items():
+#     if header.startswith("HTTP_"):
+#         print(f"{header}: {value}")
 
-# To print in the server console, use:
-# import sys
-
-# print("message", file=sys.stderr)
+# print("\nAuthenticators:")
+# for auth in request.authenticators:
+#     print(auth)
+# print()
 
 
 class UserRegisterView(generics.CreateAPIView):
@@ -43,8 +49,13 @@ class UserRegisterView(generics.CreateAPIView):
     permission_classes: list[permissions.BasePermission] = [permissions.AllowAny]
 
     def post(self, request: Request) -> Response:
-        # print(request.data, file=sys.stderr)
-        serializer: serializers.Serializer = self.get_serializer(data=request.data)
+        # parse data
+        data: dict = {
+            k: v[0] if type(v) is list and len(v) == 1 else v
+            for k, v in dict(request.data).items()
+        }
+        # serialize
+        serializer: serializers.Serializer = self.get_serializer(data=data)
         response: Response
         if serializer.is_valid():
             serializer.save()  # Directly use create() from the serializer
@@ -77,8 +88,13 @@ class UserLoginView(generics.GenericAPIView):
         user: AbstractBaseUser
 
         try:
+            # parse data
+            data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
             # Verify the absence of session token
-            serializer: serializers.Serializer = self.get_serializer(data=request.data)
+            serializer: serializers.Serializer = self.get_serializer(data=data)
             user = self.get_object()
             if user:
                 raise ValidationError("Already logged in.")
@@ -107,7 +123,7 @@ class UserLoginView(generics.GenericAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message},
+                {"detail": error.message},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -126,8 +142,11 @@ class UserProfileInfoView(generics.RetrieveAPIView):
         # I think that once I have specified permission classes I could simply do this:
         # return self.request.user
 
-        session_key: str = self.request.COOKIES.get("session")
-        user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        try:
+            session_key: str = self.request.COOKIES.get("session")
+            user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
         return user
 
     def get(self, request: Request) -> Response:
@@ -141,10 +160,10 @@ class UserProfileInfoView(generics.RetrieveAPIView):
                 status=status.HTTP_200_OK,
             )
 
-        except ObjectDoesNotExist:
+        except PermissionDenied as error:
             response = Response(
-                {"error": "Session cookie not found"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": str(error)},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         return response
@@ -159,22 +178,30 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
     def get_object(self) -> AbstractBaseUser:
         """Overwrite method to get the authenticated user object"""
-        session_key: str = self.request.COOKIES.get("session")
-        user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        try:
+            session_key: str = self.request.COOKIES.get("session")
+            user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
         return user
 
     def update(self, request: Request) -> Response:
         response: Response
 
         try:
-
+            # parse data
+            data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
             # Get user (or raise error if no cookie)
             user: AbstractBaseUser = self.get_object()
 
             # Serialize and validate user data
             serializer: serializers.ModelSerializer = self.get_serializer(
-                user, data=request.data, partial=True
-            )  # Update partial fields
+                user,
+                data=data,
+            )
             serializer.is_valid(raise_exception=True)  # Check user's current password
             serializer.save()
 
@@ -185,14 +212,14 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message},
+                {"detail": error.message},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        except ObjectDoesNotExist:
+        except PermissionDenied as error:
             response = Response(
-                {"error": "Session cookie not found"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": str(error)},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         return response
@@ -215,8 +242,9 @@ class UserLogoutView(generics.GenericAPIView):
 
     def delete(self, request: Request) -> Response:
         response: Response
+
         try:
-            session_key: str = request.COOKIES.get("session")
+            session_key: str = self.request.COOKIES.get("session")
             token: Token = Token.objects.get(key=session_key)
             response = Response(
                 status=status.HTTP_200_OK,
@@ -227,8 +255,8 @@ class UserLogoutView(generics.GenericAPIView):
 
         except ObjectDoesNotExist:
             response = Response(
-                {"error": "Session cookie not found"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "Session cookie not found"},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
 
         return response
@@ -245,19 +273,25 @@ class UserDeleteView(generics.DestroyAPIView):
 
     def get_object(self) -> AbstractBaseUser:
         """Overwrite method to get the authenticated user object"""
-        # Note.
-        # This method is necesary to avoid specifiying a queryset in a view class that
-        # inherits from GenericAPIView. In this case, we do not use it in the put method
-        # because we need to retrieve the session token too
-        session_key: str = self.request.COOKIES.get("session")
-        user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        try:
+            session_key: str = self.request.COOKIES.get("session")
+            user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
         return user
 
     def put(self, request: Request) -> Response:
         response: Response
-        user: User = self.get_object()
 
         try:
+            # get user
+            user: User = self.get_object()
+
+            # parse request data
+            data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
             # Get user using session cookie
             session_key: str = self.request.COOKIES.get("session")
             token: Token = Token.objects.get(key=session_key)
@@ -265,7 +299,7 @@ class UserDeleteView(generics.DestroyAPIView):
 
             # Validate password
             serializer: serializers.ModelSerializer = self.get_serializer(
-                user, data=request.data, partial=True
+                user, data=data, partial=True
             )
             serializer.is_valid(raise_exception=True)  # Check user's current password
 
@@ -276,14 +310,14 @@ class UserDeleteView(generics.DestroyAPIView):
             response.delete_cookie(key="session")
             token.delete()
 
-        except ObjectDoesNotExist:
+        except PermissionDenied as error:
             response = Response(
-                {"error": "Session cookie not found"},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": str(error)},
+                status=status.HTTP_401_UNAUTHORIZED,
             )
         except ValidationError as error:
             response = Response(
-                {"error": error.message},
+                {"detail": error.message},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
@@ -298,7 +332,7 @@ class UserDeleteView(generics.DestroyAPIView):
 
         response: Response = Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={"error": "DELETE method not supported. Use PUT instead."},
+            data={"detail": "DELETE method not supported. Use PUT instead."},
         )
 
         return response
@@ -310,8 +344,11 @@ class FilterFilmsView(APIView):
 
     def get_object(self) -> AbstractBaseUser:
         """Overwrite method to get the authenticated user object"""
-        session_key: str = self.request.COOKIES.get("session")
-        user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        try:
+            session_key: str = self.request.COOKIES.get("session")
+            user: AbstractBaseUser = Token.objects.get(key=session_key).user
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
         return user
 
     def get(self, request: Request) -> Response:
@@ -320,7 +357,7 @@ class FilterFilmsView(APIView):
 
         response: Response = Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={"error": "GET method not supported. Use POST instead."},
+            data={"detail": "GET method not supported. Use POST instead."},
         )
 
         return response
@@ -329,21 +366,25 @@ class FilterFilmsView(APIView):
 
         response: Response
         try:
+            # parse request data
+            filter_data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
 
-            filter_data: dict = request.data
             serializer: serializers.Serializer = FilmFilterSerializer(data=filter_data)
             serializer.is_valid(raise_exception=True)
             validated_data: dict = serializer.validated_data
 
-            film_name: str = filter_data.get("film_name")
-            director_name: str = filter_data.get("actor_name")
-            actor_name: str = filter_data.get("director_name")
-            film_genre: str = filter_data.get("genre")
-            film_description: str = filter_data.get("description")
-            min_release: str = filter_data.get("min_release")
-            max_release: str = filter_data.get("max_release")
-            min_rating: float = filter_data.get("min_rating")
-            max_rating: float = filter_data.get("max_rating")
+            film_name: str = filter_data.get("film_name", None)
+            director_name: str = filter_data.get("actor_name", None)
+            actor_name: str = filter_data.get("director_name", None)
+            film_genre: str = filter_data.get("genre", None)
+            film_description: str = filter_data.get("description", None)
+            min_release: str = filter_data.get("min_release", None)
+            max_release: str = filter_data.get("max_release", None)
+            min_rating: float = filter_data.get("min_rating", None)
+            max_rating: float = filter_data.get("max_rating", None)
 
             # String Filters
             use_union: bool = True
@@ -413,7 +454,7 @@ class FilterFilmsView(APIView):
                 relase_queryset = relase_queryset.filter(release__gte=min_date.date())
 
             if max_release is not None and not max_release == "":
-                max_date: datetime.datetime = validated_data.get("min_release")
+                max_date: datetime.datetime = validated_data.get("max_release")
                 relase_queryset = relase_queryset.filter(release__lte=max_date.date())
 
             # Filter films by average rating
@@ -462,8 +503,8 @@ class FilterFilmsView(APIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message},
-                status=status.HTTP_401_UNAUTHORIZED,
+                {"detail": error.message},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         return response
@@ -490,8 +531,8 @@ class FilmDetailView(generics.RetrieveAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": error.message},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         return response
@@ -505,7 +546,7 @@ class FilmReviewsView(generics.ListAPIView):
             film: Film = Film.objects.get(pk=value)
         except Film.DoesNotExist:
             film = None
-            raise ValidationError("Film not found.")
+            raise ObjectDoesNotExist("Film not found.")
         return film
 
     def get(self, request: Request, id: int) -> Response:
@@ -523,11 +564,11 @@ class FilmReviewsView(generics.ListAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": error.message}, status=status.HTTP_400_BAD_REQUEST
             )
         except ObjectDoesNotExist as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": str(error)}, status=status.HTTP_404_NOT_FOUND
             )
 
         return response
@@ -541,9 +582,9 @@ class PostReviewView(generics.CreateAPIView):
         try:
             session_key: str = self.request.COOKIES.get("session")
             user: AbstractBaseUser = Token.objects.get(key=session_key).user
-            return user
-        except Token.DoesNotExist:
-            raise ValidationError("Session not found.")
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
+        return user
 
     def post(self, request: Request) -> Response:
 
@@ -552,13 +593,17 @@ class PostReviewView(generics.CreateAPIView):
         # form: ModelForm = PostReviewForm(request.data, instance=user)
 
         try:
-
+            # parse request data
+            data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
             # Get authenticated user & request data
             user: User = self.get_object()
             review_data: dict = dict()
-            review_data["rating"] = request.data.get("rating", None)
-            review_data["content"] = request.data.get("content", None)
-            review_data["film_id"] = request.data.get("film_id", None)
+            review_data["rating"] = data.get("rating", None)
+            review_data["content"] = data.get("content", None)
+            review_data["film_id"] = data.get("film_id", None)
             review_data["user_id"] = user.id
 
             # Validate and save review
@@ -576,16 +621,16 @@ class PostReviewView(generics.CreateAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": error.message}, status=status.HTTP_400_BAD_REQUEST
             )
         except IntegrityError:
             response = Response(
-                {"error": "Each user can only post one review about a film."},
+                {"detail": "User can only post one review about each film."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except ObjectDoesNotExist as error:
+        except PermissionDenied as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": str(error)}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         return response
@@ -599,9 +644,9 @@ class RetrieveReviewsView(generics.RetrieveAPIView):
         try:
             session_key: str = self.request.COOKIES.get("session")
             user: AbstractBaseUser = Token.objects.get(key=session_key).user
-            return user
-        except Token.DoesNotExist:
-            raise ValidationError("Session not found.")
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
+        return user
 
     def get(self, request: Request) -> Response:
         response: Response
@@ -618,11 +663,11 @@ class RetrieveReviewsView(generics.RetrieveAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": error.message}, status=status.HTTP_400_BAD_REQUEST
             )
-        except ObjectDoesNotExist as error:
+        except PermissionDenied as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": str(error)}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         return response
@@ -636,16 +681,21 @@ class DeleteReviewView(generics.DestroyAPIView):
         try:
             session_key: str = self.request.COOKIES.get("session")
             user: AbstractBaseUser = Token.objects.get(key=session_key).user
-            return user
-        except Token.DoesNotExist:
-            raise ValidationError("Session not found.")
+        except ObjectDoesNotExist:
+            raise PermissionDenied("session cookie missing or not valid")
+        return user
 
     def post(self, request: Request) -> Response:
 
         response: Response
         try:
+            # parse request data
+            data: dict = {
+                k: v[0] if type(v) is list and len(v) == 1 else v
+                for k, v in dict(request.data).items()
+            }
             # Verify that the provided ID is numeric
-            review_id: int = request.data.get("review_id", None)
+            review_id: int = data.get("review_id", None)
             if review_id is None or review_id == "":
                 raise ValidationError("Review ID required.")
             try:
@@ -678,11 +728,15 @@ class DeleteReviewView(generics.DestroyAPIView):
 
         except ValidationError as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": error.message}, status=status.HTTP_400_BAD_REQUEST
             )
         except ObjectDoesNotExist as error:
             response = Response(
-                {"error": error.message}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": error.message}, status=status.HTTP_400_BAD_REQUEST
+            )
+        except PermissionDenied as error:
+            response = Response(
+                {"detail": str(error)}, status=status.HTTP_401_UNAUTHORIZED
             )
 
         return response
@@ -695,7 +749,12 @@ class AggregateDirectorView(generics.CreateAPIView):
         response: Response
         with transaction.atomic():  # Ensure all or nothing persistence
             try:
-                director_data: dict = request.data
+                # parse request data
+                director_data: dict = {
+                    k: v[0] if type(v) is list and len(v) == 1 else v
+                    for k, v in dict(request.data).items()
+                }
+                # serialize director
                 director_serializer = DirectorSerializer(data=director_data)
                 director_serializer.is_valid(raise_exception=True)
                 director: Director
@@ -709,7 +768,7 @@ class AggregateDirectorView(generics.CreateAPIView):
 
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -731,8 +790,13 @@ class DeleteDirectorView(generics.DestroyAPIView):
         response: Response
         with transaction.atomic():  # Ensure all or nothing persistence
             try:
+                # parse request data
+                director_data: dict = {
+                    k: v[0] if type(v) is list and len(v) == 1 else v
+                    for k, v in dict(request.data).items()
+                }
                 # Get the director id from the request data
-                director_id: int = request.data.get("id")
+                director_id: int = director_data.get("id")
                 if not director_id:
                     raise ValidationError("Director ID must be provided")
                 try:
@@ -753,12 +817,12 @@ class DeleteDirectorView(generics.DestroyAPIView):
 
             except Director.DoesNotExist:
                 response = Response(
-                    {"error": "Director not found"},
+                    {"detail": "Director not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -768,7 +832,7 @@ class DeleteDirectorView(generics.DestroyAPIView):
 
         response: Response = Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={"error": "DELETE method not supported. Use PUT instead."},
+            data={"detail": "DELETE method not supported. Use PUT instead."},
         )
 
         return response
@@ -781,7 +845,12 @@ class AggregateActorView(generics.CreateAPIView):
         response: Response
         with transaction.atomic():  # Ensure all or nothing persistence
             try:
-                actor_data: dict = request.data
+                # parse request data
+                actor_data: dict = {
+                    k: v[0] if type(v) is list and len(v) == 1 else v
+                    for k, v in dict(request.data).items()
+                }
+                # serialize actor
                 actor_serializer = ActorSerializer(data=actor_data)
                 actor_serializer.is_valid(raise_exception=True)
                 actor: Actor
@@ -795,7 +864,7 @@ class AggregateActorView(generics.CreateAPIView):
 
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -817,8 +886,13 @@ class DeleteActorView(generics.DestroyAPIView):
         response: Response
         with transaction.atomic():  # Ensure all or nothing persistence
             try:
+                # parse request data
+                actor_data: dict = {
+                    k: v[0] if type(v) is list and len(v) == 1 else v
+                    for k, v in dict(request.data).items()
+                }
                 # Get the director name from the request data
-                actor_id: str = request.data.get("id")
+                actor_id: str = actor_data.get("id")
                 if not actor_id:
                     raise ValidationError("Actor ID must be provided")
                 try:
@@ -839,12 +913,12 @@ class DeleteActorView(generics.DestroyAPIView):
 
             except Actor.DoesNotExist:
                 response = Response(
-                    {"error": "Actor not found"},
+                    {"detail": "Actor not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -854,7 +928,7 @@ class DeleteActorView(generics.DestroyAPIView):
 
         response: Response = Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={"error": "DELETE method not supported. Use PUT instead."},
+            data={"detail": "DELETE method not supported. Use PUT instead."},
         )
 
         return response
@@ -868,7 +942,15 @@ class AggregateFilmView(generics.CreateAPIView):
         with transaction.atomic():  # Ensure all or nothing persistence
 
             try:
-                film_data: dict = dict(request.data)
+                # parse request data
+                film_data: dict = {
+                    k: (
+                        v[0]
+                        if type(v) is list and len(v) == 1 and not k == "cast"
+                        else v
+                    )
+                    for k, v in dict(request.data).items()
+                }
 
                 # Handle Director
                 if "director" not in film_data.keys():
@@ -934,7 +1016,7 @@ class AggregateFilmView(generics.CreateAPIView):
 
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -957,8 +1039,13 @@ class DeleteFilmView(generics.DestroyAPIView):
         response: Response
         with transaction.atomic():  # Ensure all or nothing persistence
             try:
+                # parse request data
+                film_data: dict = {
+                    k: v[0] if type(v) is list and len(v) == 1 else v
+                    for k, v in dict(request.data).items()
+                }
                 # Get the director name from the request data
-                film_name: str = request.data.get("name")
+                film_name: str = film_data.get("name")
                 if not film_name:
                     raise ValidationError("Film name must be provided")
                 if type(film_name) is not str:
@@ -977,12 +1064,12 @@ class DeleteFilmView(generics.DestroyAPIView):
 
             except Film.DoesNotExist:
                 response = Response(
-                    {"error": "Film not found"},
+                    {"detail": "Film not found"},
                     status=status.HTTP_404_NOT_FOUND,
                 )
             except ValidationError as error:
                 response = Response(
-                    {"error": error.message},
+                    {"detail": error.message},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -992,7 +1079,7 @@ class DeleteFilmView(generics.DestroyAPIView):
 
         response: Response = Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={"error": "DELETE method not supported. Use PUT instead."},
+            data={"detail": "DELETE method not supported. Use PUT instead."},
         )
 
         return response
