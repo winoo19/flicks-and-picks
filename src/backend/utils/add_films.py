@@ -21,5 +21,5 @@ for film_data in films_json["films"]:
         print(response.json()["detail"])
     else:
         print(f"Failed to add film '{film_data['name']}':")
-        print(json.dumps(dict(response.headers),indent=4))
+        print(json.dumps(dict(response.headers), indent=4))
         print(f"{json.dumps(response.json(), indent=4)}")

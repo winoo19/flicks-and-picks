@@ -3,16 +3,7 @@ from datetime import datetime
 from apps.users.models import User, Film, Director, Actor, Review
 from django.http.response import HttpResponse
 from django.test import TestCase, Client
-
-# from rest_framework.test import APIClient as Client
 from django.urls import reverse
-from apps.users.models import (
-    User,
-    Film,
-    Director,
-    Actor,
-    Review,
-)
 
 
 class TestRegisterViews(TestCase):

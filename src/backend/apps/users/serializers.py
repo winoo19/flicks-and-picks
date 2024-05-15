@@ -1,7 +1,5 @@
 import re
-import sys
 import datetime
-
 from django.http import QueryDict
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.core import validators
@@ -392,7 +390,7 @@ class FilmSerializer(serializers.ModelSerializer):
         directly to the raw input.
         """
 
-        data: dict = dict(qdata)
+        data: dict = {key: value for key, value in dict(qdata).items()}
 
         # Validate Film Attributes
         name: str | None = data.get("name", None)
