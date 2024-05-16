@@ -28,14 +28,16 @@ SECRET_KEY: str = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS: list = []
-CSRF_TRUSTED_ORIGINS: list = []
+ALLOWED_HOSTS: list = ["localhost", "127.0.0.1", "onrender.com"]
+CSRF_TRUSTED_ORIGINS: list = ["http://localhost"]
 RENDER_EXTERNAL_HOSTNAME: str = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
     CSRF_TRUSTED_ORIGINS.append("https://" + RENDER_EXTERNAL_HOSTNAME)
+
+CORS_ALLOW_ALL_ORIGINS: bool = True
 
 
 # Application definition
@@ -145,7 +147,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 WHITENOISE_INDEX_FILE = True
 WHITENOISE_ROOT: Path = BASE_DIR / "web"
 
