@@ -21,7 +21,7 @@ export default function Profile() {
   const busy = navigation.state === 'submitting' || navigation.state === 'loading';
   const credIncorrectas = !busy && responseError;
   return (
-    <Stack direction="row" justifyContent="center" alignItems="center"
+    <Stack direction="row" justifyContent="center" alignItems="center"  className="profile-body"
       sx={{ width: 1, p: 4 }}>
       <Card variant="outlined" sx={{minWidth: '15%'}}>
         <CardContent>
