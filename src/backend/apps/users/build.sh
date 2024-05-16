@@ -1,6 +1,6 @@
 set -o errexit  # Enable strict error checking
 
-pip install -r ../../../../requirements.txt  # Install the required Python packages
+pip install -r ../../requirements.txt  # Install the required Python packages
 
 python manage.py collectstatic --no-input  # Collect static files for deployment
 
