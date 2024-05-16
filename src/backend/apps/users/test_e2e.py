@@ -1,14 +1,29 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from ..django_backend.apps.users.models import User, Review
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+from apps.users.models import User, Review
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 
 
 class TestRegisterPage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
+
         self.driver.get(self.live_server_url + reverse("user_register"))
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "submit-button"))
+        )
 
     def test_register(self):
         # Fill the form
@@ -45,17 +60,31 @@ class TestRegisterPage(StaticLiveServerTestCase):
 
     def tearDown(self):
         self.driver.quit()
+        super().tearDown()
 
 
 class TestLoginPage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
+
         self.driver.get(self.live_server_url + reverse("user_login"))
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "submit-button"))
+        )
 
         # Create a user to test the login
         self.user = User.objects.create(
             username="test_username", email="em@i.l", password="test_password"
         )
+        self.user.save()
 
     def test_login(self):
         # Fill the form
@@ -86,18 +115,27 @@ class TestLoginPage(StaticLiveServerTestCase):
             self.driver.current_url, self.live_server_url + reverse("user_register")
         )
 
-    def tearDown(self):
-        self.driver.quit()
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
 
 
 class TestProfilePage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
 
         # Create a user to test the profile
         self.user = User.objects.create(
             username="test_username", email="em@i.l", password="test_password"
         )
+        self.user.save()
 
         # Log in the user by sending a request
         self.client.post(
@@ -106,6 +144,11 @@ class TestProfilePage(StaticLiveServerTestCase):
         )
 
         self.driver.get(self.live_server_url + reverse("user_info"))
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "logout-button"))
+        )
 
     def test_logout(self):
         self.driver.find_element_by_id("logout-button").click()
@@ -141,18 +184,27 @@ class TestProfilePage(StaticLiveServerTestCase):
         # Check if the user is redirected to the correct page
         self.assertEqual(self.driver.current_url, self.live_server_url)
 
-    def tearDown(self):
-        self.driver.quit()
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
 
 
 class TestUpdatePage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
 
         # Create a user to test the update
         self.user = User.objects.create(
             username="test_username", email="em@i.l", password="test_password"
         )
+        self.user.save()
 
         # Log in the user by sending a request
         self.client.post(
@@ -161,6 +213,11 @@ class TestUpdatePage(StaticLiveServerTestCase):
         )
 
         self.driver.get(self.live_server_url + reverse("user_update"))
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "submit-button"))
+        )
 
     def test_update(self):
         # Fill the form
@@ -187,11 +244,28 @@ class TestUpdatePage(StaticLiveServerTestCase):
             self.driver.current_url, self.live_server_url + reverse("user_info")
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
+
 
 class TestInitialPage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
+
         self.driver.get(self.live_server_url)
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "film-details"))
+        )
 
     def test_film_selection(self):
         films = self.driver.find_elements(by=By.CLASS_NAME, value="film-details")
@@ -246,24 +320,46 @@ class TestInitialPage(StaticLiveServerTestCase):
         )
 
         self.driver.get(self.live_server_url)
-        self.driver.find_element(by=By.ID, value="register-button").click()
+
+        # Wait for the page to load
+        button = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "register-button"))
+        )
+        button.click()
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
             self.driver.current_url, self.live_server_url + reverse("user_register")
         )
 
-    def tearDown(self):
-        self.driver.quit()
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
 
 
 class TestFilmPage(StaticLiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.driver = webdriver.Chrome("chromedriver.exe")
+
     def setUp(self):
-        self.driver = webdriver.Chrome("chromedriver.exe")
+        super().setUp()
+
         self.driver.get(self.live_server_url + reverse("film", args=[1]))
+
+        # Wait for the page to load
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, "update-button"))
+        )
+
         self.user = User.objects.create(
             username="test_username", email="em@i.l", password="test_password"
         )
+        self.user.save()
+
         self.client.post(
             reverse("user_login"),
             {"username": "test_username", "password": "test_password"},
@@ -291,3 +387,8 @@ class TestFilmPage(StaticLiveServerTestCase):
 
         # Check if the user is redirected to the correct page
         self.assertEqual(self.driver.current_url, self.live_server_url)
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
