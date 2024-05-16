@@ -32,13 +32,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields: tuple[str, str, str, bool, str] = (
+        fields: tuple[int, str, str, str] = (
             "id",
             "username",
             "email",
             "password",
-            # "professional",
-            # "profile_picture",
         )
 
         extra_kwargs: dict[str, dict[str, bool]] = {
@@ -371,7 +369,6 @@ class FilmSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Film
-        # fields: str = "__all__"
         fields: list[str] = [
             "id",
             "name",
