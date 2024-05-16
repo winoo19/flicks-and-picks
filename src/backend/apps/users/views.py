@@ -4,7 +4,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.db import transaction, IntegrityError
 from django.db.models import QuerySet, Value, Avg, Case, When
 from django.db.models.manager import BaseManager
-from rest_framework import generics, status, permissions, serializers
+from rest_framework import generics, status, serializers
 from rest_framework.views import APIView
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -46,7 +46,6 @@ from apps.users.serializers import (
 class UserRegisterView(generics.CreateAPIView):
     serializer_class: type = UserSerializer
     # Specify that unauthenticated (service) users have access to this view
-    permission_classes: list[permissions.BasePermission] = [permissions.AllowAny]
 
     def post(self, request: Request) -> Response:
         # parse data
@@ -72,7 +71,6 @@ class UserRegisterView(generics.CreateAPIView):
 class UserLoginView(generics.GenericAPIView):
     serializer_class: type = UserLoginSerializer
     # Specify that unauthenticated (web) users have access to this view
-    permission_classes: list[permissions.BasePermission] = [permissions.AllowAny]
 
     def get_object(self) -> AbstractBaseUser:
         """Overwrite method to get the authenticated user object"""
@@ -133,7 +131,6 @@ class UserLoginView(generics.GenericAPIView):
 class UserProfileInfoView(generics.RetrieveAPIView):
     serializer_class: type = UserSerializer
     # Specify that only authenticated (web) users have access to this view
-    permission_classes: list[permissions.BasePermission] = [permissions.IsAuthenticated]
 
     def get_object(self) -> AbstractBaseUser:
         """Overwrite method to get the authenticated user object"""
@@ -171,7 +168,6 @@ class UserProfileInfoView(generics.RetrieveAPIView):
 
 class UserProfileUpdateView(generics.UpdateAPIView):
     # Specify that only authenticated (web) users have access to this view
-    permission_classes: list[permissions.BasePermission] = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> serializers.Serializer:
         return UserUpdateSerializer
@@ -226,7 +222,6 @@ class UserProfileUpdateView(generics.UpdateAPIView):
 
 
 class UserLogoutView(generics.GenericAPIView):
-    permission_classes: list[permissions.BasePermission] = [permissions.IsAuthenticated]
 
     # Note.
     # In Django REST Framework, the serializer_class attribute is used by the framework
@@ -266,7 +261,6 @@ class UserLogoutView(generics.GenericAPIView):
 
 
 class UserDeleteView(generics.DestroyAPIView):
-    permission_classes: list[permissions.BasePermission] = [permissions.IsAuthenticated]
 
     def get_serializer_class(self) -> serializers.Serializer:
         return UserDeleteSerializer
@@ -309,6 +303,7 @@ class UserDeleteView(generics.DestroyAPIView):
             )
             response.delete_cookie(key="session")
             token.delete()
+            user.delete()
 
         except PermissionDenied as error:
             response = Response(
@@ -321,8 +316,6 @@ class UserDeleteView(generics.DestroyAPIView):
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
-        # Remove instance
-        user.delete()
         return response
 
     def delete(self, request: Request) -> Response:

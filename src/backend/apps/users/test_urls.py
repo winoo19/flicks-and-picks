@@ -2,37 +2,6 @@ from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 
 
-"""
-user_urls: list[path] = [
-    path("user/register/", UserRegisterView.as_view(), name="user_register"),
-    path("user/login/", UserLoginView.as_view(), name="user_login"),
-    path("user/profile-info/", UserProfileInfoView.as_view(), name="user_info"),
-    path("user/profile-update/", UserProfileUpdateView.as_view(), name="user_update"),
-    path("user/logout/", UserLogoutView.as_view(), name="user_logout"),
-    path("user/delete/", UserDeleteView.as_view(), name="user_delete"),
-    path("user/add-review/", PostReviewView.as_view(), name="user_add_review"),
-    path("user/delete-review/", DeleteReviewView.as_view(), name="user_del_review"),
-    path("user/history/", RetrieveReviewsView.as_view(), name="user_history"),
-]
-
-site_urls: list[path] = [
-    path("films/", FilterFilmsView.as_view(), name="film_filter"),
-    path("film/<int:id>/", FilmDetailView.as_view(), name="film_info"),
-    path("film/<int:id>/reviews/", FilmReviewsView.as_view(), name="film_reviews"),
-]
-
-admin_urls: list[path] = [
-    path("admin/", admin.site.urls),
-    path("site-admin/add-director/", AggregateDirectorView.as_view(), name="add_dir"),
-    path("site-admin/add-actor/", AggregateActorView.as_view(), name="add_actor"),
-    path("site-admin/add-film/", AggregateFilmView.as_view(), name="add_film"),
-    path("site-admin/delete-director/", DeleteDirectorView.as_view(), name="del_dir"),
-    path("site-admin/delete-actor/", DeleteActorView.as_view(), name="del_actor"),
-    path("site-admin/delete-film/", DeleteFilmView.as_view(), name="del_film"),
-]
-"""
-
-
 class TestUrls(SimpleTestCase):
     def test_user_register_url(self) -> None:
         url: str = reverse("user_register")

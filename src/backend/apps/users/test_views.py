@@ -621,7 +621,7 @@ class TestDeleteProfileViews(TestCase):
         )
 
     def test_delete_view_DELETE_no_cookie(self) -> None:
-        response: HttpResponse = self.client.delete(self.delete_url)
+        response: HttpResponse = self.client.put(self.delete_url)
 
         # Check if the response is 401
         self.assertEqual(
