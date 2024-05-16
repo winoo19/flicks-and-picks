@@ -12,7 +12,7 @@ export default function Footer() {
                 <Divider />
                 <Typography variant="body2" align="center" sx={{ p: 1 }}>
                     {"Copyright © "}
-                    <Link href="https://github.com/rdgzmanuel/final_project_apps.git" target="_blank">
+                    <Link href="https://github.com/winoo19/flicks-and-picks" target="_blank">
                         DAS Final Project
                     </Link>{" "}
                     {new Date().getFullYear()}.
