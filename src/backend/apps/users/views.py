@@ -116,7 +116,7 @@ class UserLoginView(generics.GenericAPIView):
                 value=token.key,
                 secure=True,
                 httponly=True,
-                samesite="lax",
+                samesite="None",
             )
 
         except ValidationError as error:

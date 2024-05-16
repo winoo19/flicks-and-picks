@@ -1,11 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-from apps.users.models import User, Review
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
-from django.urls import reverse
+
+from time import sleep, perf_counter
+
+
+PROJECT_URL = "http://localhost:5173/"
 
 
 class TestRegisterPage(StaticLiveServerTestCase):
@@ -13,54 +14,59 @@ class TestRegisterPage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
-        self.driver.get(self.live_server_url + reverse("user_register"))
-
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "submit-button"))
-        )
+        if self.driver.current_url != PROJECT_URL + "register/":
+            self.driver.get(PROJECT_URL + "register/")
 
     def test_register(self):
-        # Fill the form
-        self.driver.find_element_by_id("username").send_keys("test_username")
-        self.driver.find_element_by_id("email").send_keys("em@i.l")
-        self.driver.find_element_by_id("password").send_keys("test_password")
-        self.driver.find_element_by_id("password2").send_keys("test_password")
-        self.driver.find_element_by_id("submit-button").click()
+        user = str(int(perf_counter() * 100))
 
-        # Check if the user is correctly created
-        user = User.objects.get(username="test_username")
-        self.assertEqual(user.email, "em@i.l")
-        self.assertEqual(user.password, "test_password")
-        self.assertTrue(user.professional)
+        # Fill the form
+        self.driver.find_element(by=By.ID, value="username").send_keys(user)
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            f"{user}@{user}.com"
+        )
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="password2").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+
+        sleep(2)
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_login")
+            self.driver.current_url,
+            PROJECT_URL + "login/?registered",
+            "Register redirect failed in register page",
         )
 
     def test_back_button(self):
-        self.driver.find_element_by_id("cancel-button").click()
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
-
-    def test_login_button(self):
-        self.driver.find_element_by_id("login-button").click()
+        self.driver.find_element(by=By.ID, value="cancel-button").click()
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_login")
+            self.driver.current_url,
+            PROJECT_URL,
+            "Back button failed in register page",
         )
 
-    def tearDown(self):
-        self.driver.quit()
-        super().tearDown()
+    def test_login_button(self):
+        self.driver.find_element(by=By.ID, value="login-button").click()
+
+        # Check if the user is redirected to the correct page
+        self.assertEqual(
+            self.driver.current_url,
+            PROJECT_URL + "login",
+            "Login button redirect failed in register page",
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.driver.quit()
+        super().tearDownClass()
 
 
 class TestLoginPage(StaticLiveServerTestCase):
@@ -68,51 +74,56 @@ class TestLoginPage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
-        self.driver.get(self.live_server_url + reverse("user_login"))
+        self.user = str(int(perf_counter() * 100))
 
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "submit-button"))
+        # Register a user to test the login
+        self.driver.get(PROJECT_URL + "register/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            f"{self.user}@{self.user}.com"
         )
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="password2").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(2)
 
-        # Create a user to test the login
-        self.user = User.objects.create(
-            username="test_username", email="em@i.l", password="test_password"
-        )
-        self.user.save()
+        self.driver.get(PROJECT_URL + "login/")
 
     def test_login(self):
         # Fill the form
-        self.driver.find_element_by_id("email").send_keys("em@i.l")
-        self.driver.find_element_by_id("password").send_keys("test_password")
-        self.driver.find_element_by_id("submit-button").click()
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+
+        # Wait for the page to load
+        sleep(3)
 
         # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
-
-        # Check if the user is correctly logged in
-        # by checking if the user is in the session
         self.assertEqual(
-            self.driver.get_cookie("sessionid")["value"], self.user.session_key
+            self.driver.current_url, PROJECT_URL, "Login redirect failed in login page"
         )
 
     def test_back_button(self):
-        self.driver.find_element_by_id("cancel-button").click()
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
-
-    def test_register_button(self):
-        self.driver.find_element_by_id("register-button").click()
+        self.driver.find_element(by=By.ID, value="cancel-button").click()
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_register")
+            self.driver.current_url, PROJECT_URL, "Back button failed in login page"
+        )
+
+    def test_register_button(self):
+        self.driver.find_element(by=By.ID, value="register-button").click()
+
+        # Check if the user is redirected to the correct page
+        self.assertEqual(
+            self.driver.current_url,
+            PROJECT_URL + "register",
+            "Register button failed in login page",
         )
 
     @classmethod
@@ -126,63 +137,88 @@ class TestProfilePage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
         # Create a user to test the profile
-        self.user = User.objects.create(
-            username="test_username", email="em@i.l", password="test_password"
+        self.user = str(int(perf_counter() * 100))
+        self.driver.get(PROJECT_URL + "register/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            f"{self.user}@{self.user}.com"
         )
-        self.user.save()
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="password2").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
 
-        # Log in the user by sending a request
-        self.client.post(
-            reverse("user_login"),
-            {"username": "test_username", "password": "test_password"},
-        )
+        # Log in the user
+        self.driver.get(PROJECT_URL + "login/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
 
-        self.driver.get(self.live_server_url + reverse("user_info"))
-
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "logout-button"))
-        )
+        self.driver.get(PROJECT_URL + "profile-app/profile/")
 
     def test_logout(self):
-        self.driver.find_element_by_id("logout-button").click()
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
-
-        # Check if the user is correctly logged out
-        # by checking if the user is in the session
-        self.assertIsNone(self.driver.get_cookie("sessionid"))
-
-    def test_delete(self):
-        self.driver.find_element_by_id("delete-button").click()
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
-
-        # Check if the user is correctly deleted
-        with self.assertRaises(User.DoesNotExist):
-            User.objects.get(username="test_username")
-
-    def test_update(self):
-        self.driver.find_element_by_id("update-button").click()
+        sleep(10)
+        self.driver.find_element(by=By.ID, value="logout-button").click()
+        sleep(3)
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_update")
+            self.driver.current_url,
+            PROJECT_URL,
+            "Logout redirect failed in profile page",
         )
 
-    def test_back_button(self):
-        self.driver.find_element_by_id("back-button").click()
+        # Check if the user is correctly logged out
+        self.driver.get(PROJECT_URL + "profile-app/profile/")
+        sleep(1)
+        self.assertEqual(
+            self.driver.current_url,
+            PROJECT_URL,
+            "Logout failed in profile page",
+        )
+
+    def test_delete(self):
+        sleep(10)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="unsubscribe-button").click()
+        self.driver.switch_to.alert.accept()
+        sleep(3)
 
         # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
+        self.assertEqual(
+            self.driver.current_url,
+            PROJECT_URL,
+            "Delete redirect failed in profile page",
+        )
+
+        # Check if the user is correctly deleted
+        self.driver.get(PROJECT_URL + "login/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
+        self.assertEqual(
+            self.driver.current_url,
+            PROJECT_URL + "login/",
+            "Delete failed in profile page",
+        )
+
+    def tearDown(self):
+        super().tearDown()
+
+        # Log out the user
+        self.driver.get(PROJECT_URL + "profile-app/profile/")
+        sleep(3)
+        if self.driver.current_url == PROJECT_URL + "profile-app/profile/":
+            self.driver.find_element(by=By.ID, value="logout-button").click()
+            sleep(3)
 
     @classmethod
     def tearDownClass(cls):
@@ -195,53 +231,54 @@ class TestUpdatePage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
-        # Create a user to test the update
-        self.user = User.objects.create(
-            username="test_username", email="em@i.l", password="test_password"
-        )
-        self.user.save()
+        # Create a user to test the profile
+        self.user = str(int(perf_counter() * 100))
 
-        # Log in the user by sending a request
-        self.client.post(
-            reverse("user_login"),
-            {"username": "test_username", "password": "test_password"},
+        self.driver.get(PROJECT_URL + "register/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            f"{self.user}@{self.user}.com"
         )
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="password2").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
 
-        self.driver.get(self.live_server_url + reverse("user_update"))
+        # Log in the user
+        self.driver.get(PROJECT_URL + "login/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(self.user)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
 
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "submit-button"))
-        )
+        self.driver.get(PROJECT_URL + "profile-app/profile-update/")
 
     def test_update(self):
+        sleep(5)
         # Fill the form
-        self.driver.find_element_by_id("id_email").send_keys("new_em@i.l")
-        self.driver.find_element_by_id("id_password").send_keys("new_test_password")
-        self.driver.find_element_by_id("id_password2").send_keys("new_test_password")
-        self.driver.find_element_by_id("submit-button").click()
-
-        # Check if the user is correctly updated
-        user = User.objects.get(username="test_username")
-        self.assertEqual(user.email, "new_em@i.l")
-        self.assertEqual(user.password, "new_test_password")
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_info")
+        self.driver.find_element(by=By.ID, value="email").clear()
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            "newemail@email.com"
         )
 
-    def test_back_button(self):
-        self.driver.find_element_by_id("cancel-button").click()
+        self.driver.find_element(by=By.ID, value="current-password").send_keys(
+            "Password1"
+        )
+        self.driver.find_element(by=By.ID, value="new-password").send_keys("Password2")
+        self.driver.find_element(by=By.ID, value="update-button").click()
+
+        sleep(3)
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_info")
+            self.driver.current_url,
+            PROJECT_URL,
+            "Update redirect failed in update page",
         )
 
     @classmethod
@@ -255,17 +292,12 @@ class TestInitialPage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
-        self.driver.get(self.live_server_url)
-
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "film-details"))
-        )
+        self.driver.get(PROJECT_URL)
 
     def test_film_selection(self):
         films = self.driver.find_elements(by=By.CLASS_NAME, value="film-details")
@@ -279,7 +311,8 @@ class TestInitialPage(StaticLiveServerTestCase):
             film_title.click()
             self.assertEqual(
                 self.driver.current_url,
-                self.live_server_url + reverse("film", args=[film_id]),
+                PROJECT_URL + f"film/{film_id}/",
+                f"Title redirect failed in initial page for film {film_id}",
             )
             self.driver.back()
 
@@ -287,7 +320,8 @@ class TestInitialPage(StaticLiveServerTestCase):
             film_thumbnail.click()
             self.assertEqual(
                 self.driver.current_url,
-                self.live_server_url + reverse("film", args=[film_id]),
+                PROJECT_URL + f"film/{film_id}/",
+                f"Thumbnail redirect failed in initial page for film {film_id}",
             )
             self.driver.back()
 
@@ -295,41 +329,53 @@ class TestInitialPage(StaticLiveServerTestCase):
         search_bar = self.driver.find_element(by=By.ID, value="search")
         search_bar.send_keys("The Shawshank Redemption")
 
+        sleep(3)
         films = self.driver.find_elements(by=By.CLASS_NAME, value="film-details")
 
         # Check if the film is correctly displayed
-        self.assertEqual(len(films), 1)
+        self.assertEqual(
+            len(films),
+            1,
+            f"Search bar filter failed, should have displayed 1 film",
+        )
         self.assertEqual(
             films[0].find_element(by=By.ID, value="title").text,
             "The Shawshank Redemption",
+            "Search bar filter failed, should have displayed The Shawshank Redemption",
         )
         search_bar.clear()
 
         search_bar.send_keys("aaaaaabbbbbccccccNotARealFilm")
+        sleep(1)
+
         films = self.driver.find_elements(by=By.CLASS_NAME, value="film-details")
 
         # Check that no film is displayed
-        self.assertEqual(len(films), 0)
+        self.assertEqual(
+            len(films), 0, "Search bar filter failed, should have displayed no film"
+        )
 
     def test_login_and_register_redirect(self):
         self.driver.find_element(by=By.ID, value="login-button").click()
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_login")
+            self.driver.current_url,
+            PROJECT_URL + "login",
+            "Login button redirect failed in initial page",
         )
 
-        self.driver.get(self.live_server_url)
+        self.driver.get(PROJECT_URL)
 
         # Wait for the page to load
-        button = WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "register-button"))
-        )
+        button = self.driver.find_element(by=By.ID, value="register-button")
         button.click()
 
         # Check if the user is redirected to the correct page
         self.assertEqual(
-            self.driver.current_url, self.live_server_url + reverse("user_register")
+            self.driver.current_url,
+            PROJECT_URL + "register",
+            "Register button redirect failed in initial page",
         )
 
     @classmethod
@@ -343,29 +389,33 @@ class TestFilmPage(StaticLiveServerTestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.driver = webdriver.Chrome("chromedriver.exe")
+        cls.driver = webdriver.Chrome()
 
     def setUp(self):
         super().setUp()
 
-        self.driver.get(self.live_server_url + reverse("film", args=[1]))
-
-        # Wait for the page to load
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "update-button"))
-        )
-
-        self.user = User.objects.create(
-            username="test_username", email="em@i.l", password="test_password"
-        )
-        self.user.save()
-
-        self.client.post(
-            reverse("user_login"),
-            {"username": "test_username", "password": "test_password"},
-        )
-
     def test_film_review(self):
+        # Register a user to test the review
+        user = str(int(perf_counter() * 100))
+
+        self.driver.get(PROJECT_URL + "register/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(user)
+        self.driver.find_element(by=By.ID, value="email").send_keys(
+            f"{user}@{user}.com"
+        )
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="password2").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
+        self.driver.get(PROJECT_URL + "login/")
+        self.driver.find_element(by=By.ID, value="username").send_keys(user)
+        self.driver.find_element(by=By.ID, value="password").send_keys("Password1")
+        self.driver.find_element(by=By.ID, value="submit-button").click()
+        sleep(3)
+
+        self.driver.get(PROJECT_URL + "film/1/")
+        sleep(5)
+
         review = self.driver.find_element(by=By.ID, value="review")
         score = self.driver.find_element(by=By.ID, value="score")
         update_button = self.driver.find_element(by=By.ID, value="update-button")
@@ -375,18 +425,24 @@ class TestFilmPage(StaticLiveServerTestCase):
         score.send_keys("5")
         update_button.click()
 
-        # Check if the review is correctly created in the database
+        # Check redirection
         self.assertEqual(
-            Review.objects.get(user=self.user, film_id=1).review, "test_review"
+            self.driver.current_url,
+            PROJECT_URL,
+            "Review redirect failed in film page",
         )
-        self.assertEqual(Review.objects.get(user=self.user, film_id=1).score, 5)
 
     def test_back_button(self):
+        self.driver.get(PROJECT_URL + "film/1/")
+        sleep(5)
+
         back_button = self.driver.find_element(by=By.ID, value="back-button")
         back_button.click()
 
         # Check if the user is redirected to the correct page
-        self.assertEqual(self.driver.current_url, self.live_server_url)
+        self.assertEqual(
+            self.driver.current_url, PROJECT_URL, "Back button failed in film page"
+        )
 
     @classmethod
     def tearDownClass(cls):

@@ -69,8 +69,8 @@ export default function Header({ setFilmList }) {
           dataToSend["max_release"] = number;
         }
         else if (0 <= number && number <= 10) {
-          dataToSend["min_score"] = number;
-          dataToSend["max_score"] = number;
+          dataToSend["min_rating"] = number;
+          dataToSend["max_rating"] = number;
         }
       }
     }
