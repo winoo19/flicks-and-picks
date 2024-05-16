@@ -27,6 +27,7 @@ jobs:
       - name: Run django tests
         working-directory: ./src/backend
         run: |
+          django-admin --version
           python manage.py test apps.users.test_models
           python manage.py test apps.users.test_urls
           python manage.py test apps.users.test_views
