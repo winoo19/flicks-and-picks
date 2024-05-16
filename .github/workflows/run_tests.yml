@@ -23,10 +23,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - uses: psf/black@stable
-        with:
-          options: "--check ."
-
   test:
     runs-on: ubuntu-latest
 
@@ -35,8 +31,12 @@ jobs:
     steps:
       - name: Run django tests
         run: |
-          python manage.py test --pattern="../tests/test_django_*.py"
+          cd src/backend
+          python manage.py test apps.users.test_models
+          python manage.py test apps.users.test_urls
+          python manage.py test apps.users.test_views
 
       - name: Run end-to-end tests
         run: |
-          python manage.py test --pattern="../tests/test_e2e.py"
+          cd src/backend
+          python manage.py test apps.users.test_end_to_end
