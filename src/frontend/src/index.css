@@ -25,6 +25,11 @@ header h1 {
   margin-left: 4vw;
 }
 
+.profile-box {
+  padding: 2vw;
+  background-color: light gray;
+}
+
 nav {
   position: relative;
 }
@@ -34,11 +39,8 @@ nav {
   top: 50%;
   left: -60%;
   transform: translateY(-50%);
-  
-}
-
-.search-icon {
   color: #e5dac6;
+  
 }
 
 .base-icon {
@@ -107,12 +109,17 @@ footer {
   color: #fff;
   text-align: center;
   padding: 10px 0;
-  bottom: 0;
   width: 100%;
+  position: fixed;
+  bottom: 0;
 }
 
 footer p {
   margin: 0;
+}
+
+.profile-letter {
+  background-color: light gray;
 }
 
 

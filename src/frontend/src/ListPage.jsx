@@ -7,12 +7,12 @@ import FilmPreview from './FilmPreview';
 const INITIAL_PAGE = 1;
 const LAST_PAGE = 20;
 
-function ListPage({ filmList, currentPage, setCurrentPage, isLogged }) {
+function ListPage({ filmList}) {
   return <>
     <div className="container">
       {/* <h1>Nuestras películas</h1> */}
       {/* <PageFilter currentPage={currentPage} setCurrentPage={setCurrentPage} /> */}
-      <FilmList filmList={filmList} isLogged={isLogged} />
+      <FilmList filmList={filmList}/>
     </div>
   </>
 }
@@ -34,12 +34,12 @@ function PageFilter({ currentPage, setCurrentPage }) {
   </>
 }
 
-function FilmList({ filmList, isLogged }) {
+function FilmList({ filmList }) {
   return (
     <div>
       {filmList.map((film, index) => (
         <Fragment key={film.id}>
-          <FilmPreview film={film} isLogged={isLogged} />
+          <FilmPreview film={film}/>
           {index < filmList.length - 1 && <Divider variant="middle" />}
         </Fragment>
       ))}
@@ -49,7 +49,7 @@ function FilmList({ filmList, isLogged }) {
 
 function App() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [isLogged, filmList, setFilmList] = useOutletContext();
+  const [filmList, setFilmList] = useOutletContext();
 
   useEffect(() => {
     const fetchFilms = async () => {
@@ -74,7 +74,7 @@ function App() {
           credentials: "include",
           body: body
         });
-        console.log(response);
+
         if (!response.ok) {
           throw new Error("Couldn't load film list");
         }
@@ -89,7 +89,7 @@ function App() {
 
 
   return (
-    <ListPage filmList={filmList} currentPage={currentPage} setCurrentPage={setCurrentPage} isLogged={isLogged} />
+    <ListPage filmList={filmList} currentPage={currentPage} setCurrentPage={setCurrentPage}/>
   )
 }
 

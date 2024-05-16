@@ -6,33 +6,21 @@ import './index.css'
 
 
 function Film() {
-  // const { filmDetails, filmReview } = useLoaderData();
-  const filmDetails = {
-    "id": 7,
-    "title": "Forrest Gump",
-    "genre": "Drama",
-    "length": 142,
-    "director": "Robert Zemeckis",
-    "cast": ["Tom Hanks", "Robin Wright", "Gary Sinise"],
-    "summary": "The presidencies of Kennedy and Johnson, the events of Vietnam, Watergate, and other historical events unfold from the perspective of an Alabama man with an IQ of 75, whose only desire is to be reunited with his childhood sweetheart.",
-    "image_url": "https://m.media-amazon.com/images/M/MV5BZTY4NjcxNDctZmVjMC00NzM0LWIxYTctNjdhNzdlN2VkNjNiXkEyXkFqcGdeQXVyMDM2NDM2MQ@@._V1_.jpg",
-    "year": 1994,
-    "rating": 8
-  };
-
-
-  let filmReview = {
-    "score": 4,
-    "review": "Very good."
-  }
-
+  const filmData = useLoaderData();
+  const filmDetails = filmData.filmDetails;
+  const filmReviews= filmData.filmReviews;
+  const filmUserReview = filmData.userReview;
   const navigation = useNavigation();
-  const busy = navigation.state === 'submitting' ||
-    navigation.state === 'loading';
+  const busy = navigation.state === 'submitting' || navigation.state === 'loading';
 
+  console.log("details", filmDetails);
+  console.log("reviews", filmReviews);
+  console.log("user review", filmUserReview);
   if (!filmDetails) {
     return <div>Loading...</div>;
   }
+
+  const isUserReview = (filmUserReview !== null && filmUserReview !== undefined);
 
   let castString = "";
   const castLength = filmDetails.cast.length;
@@ -45,6 +33,15 @@ function Film() {
     }
   };
 
+  const renderReviews = () => {
+    return filmReviews.reviews.map((review, index) => (
+      <div key={index} className="review">
+        <p>{review.content}</p>
+        {<p>Rating: {review.rating}</p>}
+      </div>
+    ));
+  };
+
   return (
     <div className="film-details" id="filmDetails">
       <div className="first-column-details">
@@ -53,7 +50,7 @@ function Film() {
             <IconButton>
               <ArrowBackIcon></ArrowBackIcon>
             </IconButton>
-            <Button variant="text">BACK TO FILMS</Button>
+            <Button id="back-button" variant="text">BACK TO FILMS</Button>
           </NavLink>
         </div>
         <img className="details-image" src={filmDetails.image_url} alt="Thumbnail" />
@@ -62,33 +59,38 @@ function Film() {
         <div className="first-row">
           <h1>{filmDetails.title}</h1>
           <Box className="rating-box">
-            <RatingSquare rating={filmDetails.rating} />
+            <RatingSquare rating={filmDetails.avg_rating} />
           </Box>
         </div>
         <p> <strong>Genre:</strong> {filmDetails.genre}</p>
-        <p> <strong>Summary:</strong> {filmDetails.summary}</p>
+        <p> <strong>Summary:</strong> {filmDetails.description}</p>
         <p> <strong>Director:</strong> {filmDetails.director}</p>
-        <p> <strong>Length:</strong> {filmDetails.length}</p>
+        <p> <strong>Length:</strong> {filmDetails.duration} min</p>
         <p> <strong>Cast:</strong> {castString}</p>
-        <p> <strong>Year:</strong> {filmDetails.year}</p>
+        <p> <strong>Release Date:</strong> {filmDetails.release}</p>
+        <p> <strong>Reviews:</strong></p>
         <div>
-          <Form method="put" className="review-section">
+          {renderReviews()}
+        </div>
+        <div>
+          <Form method="post" className="review-section">
             <p> <strong>Review:</strong></p>
             {/* <label htmlFor="review"><strong>Review:</strong></label> */}
             <TextField margin="dense" disabled={busy}
-              label="Review"
-              name="review"
+              id="review"
+              label="Your Review"
+              name="content"
               multiline
               rows={3}
-              fullWidth="false"
-              defaultValue={filmReview.review ? filmReview.review : ""}
+              defaultValue={isUserReview ? filmUserReview.review : ""}
             />
             <TextField margin="dense" size="small" disabled={busy}
+              id="score"
               label="Score"
-              name="score"
+              name="rating"
               type="number"
               style={{ width: "10%" }}
-              defaultValue={filmReview.score ? filmReview.score : ""}
+              defaultValue={isUserReview ? filmUserReview.rating : ""}
               InputProps={{
                 inputProps: {
                   min: 1,
@@ -96,7 +98,16 @@ function Film() {
                 },
               }}
             />
-            <Button type="submit" style={{ width: "10%" }} variant="outlined" color="warning" size="small" disabled={busy} margin="dense">
+            <input
+              type="hidden"
+              id="film-id"
+              name="film_id"
+              value={filmDetails.id}
+            />
+            <Button type="submit" style={{ width: "10%" }}
+              variant="outlined"
+              id="update-button"
+              color="warning" size="small" disabled={busy} margin="dense">
               Update
             </Button>
           </Form>

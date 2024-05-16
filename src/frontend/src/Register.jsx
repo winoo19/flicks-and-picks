@@ -21,9 +21,9 @@ export default function Register() {
    const onChangePassword2 = (event) => {
     setPassword2(event.target.value)
    }
-  const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
-  const differentPasswords = password2 && password && password !== password2;
+  const [password, setPassword] = useState(null);
+  const [password2, setPassword2] = useState(null);
+  const differentPasswords = (password2 && password) && (password !== password2);
 
   return (
     <Stack direction="row" justifyContent="center" alignItems="center"
@@ -39,29 +39,27 @@ export default function Register() {
             {/* Campos de registro: nombre, teléfono, email, password, password2 */} 
             <TextField margin="dense" size="small" required fullWidth disabled={busy}
               label="Name"
-              name="name"
-            />
-            <TextField margin="dense" size="small" required fullWidth disabled={busy}
-              label="Phone"
-              name="phone"
-              type="phone"
+              name="username"
+              id="username"
             />
             <TextField margin="dense" size="small" required fullWidth disabled={busy}
               label="Email"
               name="email"
               type="email"
+              id="email"
             />
-            {/* ToDo#3: completa las props value y onChange para validar que coinciden los passwords */}
             <TextField  margin="dense" size="small" required fullWidth disabled={busy}
               label="Password"
               name="password"
               type="password"
+              id="password"
               onChange={onChangePassword}
             />
             <TextField  margin="dense" size="small" required fullWidth
               label="Repeat password"
               name="password2"
               type="password"
+              id="password2"
               onChange={onChangePassword2}
               error={differentPasswords}
               helperText={differentPasswords && "Las contraseñas deben coincidir"}
@@ -70,15 +68,15 @@ export default function Register() {
               mt:1, width:"100%", py:0, visibility: registerError ? "visible" : "hidden"}}>
               {registerError && registerError.status === 409 ? "User already registered" : "Error registering" }
             </Alert>
-            <LoadingButton type="submit" variant="contained" fullWidth sx={{mt:2,mb:1}} 
+            <LoadingButton id="submit-button" type="submit" variant="contained" fullWidth sx={{mt:2,mb:1}} 
               loading={busy} disabled={busy || differentPasswords}>
                 Register
             </LoadingButton>
             <NavLink to="/login">
-              <Button disabled={busy}>Log In</Button>
+              <Button id="login-button" disabled ={busy}>Log In</Button>
             </NavLink>
             <NavLink to="/">
-              <Button disabled={busy}>Cancel</Button>
+              <Button id="cancel-button" disabled={busy}>Cancel</Button>
             </NavLink>
           </Stack>
         </Form>
