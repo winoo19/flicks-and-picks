@@ -39,6 +39,9 @@ coverage.xml
 # Translations
 *.mo
 
+# Cache
+__pycache__/
+
 # Mr Developer
 .mr.developer.cfg
 .project

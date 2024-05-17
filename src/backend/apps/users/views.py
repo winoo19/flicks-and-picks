@@ -370,8 +370,8 @@ class FilterFilmsView(APIView):
             validated_data: dict = serializer.validated_data
 
             film_name: str = filter_data.get("film_name", None)
-            director_name: str = filter_data.get("actor_name", None)
-            actor_name: str = filter_data.get("director_name", None)
+            director_name: str = filter_data.get("director_name", None)
+            actor_name: str = filter_data.get("actor_name", None)
             film_genre: str = filter_data.get("genre", None)
             film_description: str = filter_data.get("description", None)
             min_release: str = filter_data.get("min_release", None)

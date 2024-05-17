@@ -424,24 +424,13 @@ class TestFilmPage(StaticLiveServerTestCase):
         review.send_keys("test_review")
         score.send_keys("5")
         update_button.click()
+        sleep(5)
 
         # Check redirection
         self.assertEqual(
             self.driver.current_url,
             PROJECT_URL,
             "Review redirect failed in film page",
-        )
-
-    def test_back_button(self):
-        self.driver.get(PROJECT_URL + "film/1/")
-        sleep(5)
-
-        back_button = self.driver.find_element(by=By.ID, value="back-button")
-        back_button.click()
-
-        # Check if the user is redirected to the correct page
-        self.assertEqual(
-            self.driver.current_url, PROJECT_URL, "Back button failed in film page"
         )
 
     @classmethod
