@@ -75,7 +75,7 @@ To get a local copy up and running, follow these steps:
 1. Clone the repository
 
 ```sh
-   git clone https://github.com/your-repo/flicks-and-picks.git
+   git clone https://github.com/winoo19/flicks-and-picks.git
 ```
 
 2. Install the required packages specified in the `requirements.txt` file (we recommend using a virtual environment)
