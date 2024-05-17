@@ -134,14 +134,14 @@ Here's the link to the functional video demonstration of the project:
 ## 👥 Contributors
 
 <div align="center">
-  <a href="https://github.com/contributor1" style="margin: 0px 10px">
-    <img src="https://github.com/contributor1.png" style="border-radius: 50%;" width="50" height="50">
+  <a href="https://github.com/winoo19" style="margin: 0px 10px">
+    <img src="https://github.com/winoo19.png" style="border-radius: 50%;" width="50" height="50">
   </a>
-  <a href="https://github.com/contributor2" style="margin: 0px 10px">
-    <img src="https://github.com/contributor2.png" style="border-radius: 50%;" width="50" height="50">
+  <a href="https://github.com/rdgzmanuel" style="margin: 0px 10px">
+    <img src="https://github.com/rdgzmanuel.png" style="border-radius: 50%;" width="50" height="50">
   </a>
-  <a href="https://github.com/contributor3" style="margin: 0px 10px">
-    <img src="https://github.com/contributor3.png" style="border-radius: 50%;" width="50" height="50">
+  <a href="https://github.com/MiguelMontesLorenzo" style="margin: 0px 10px">
+    <img src="https://github.com/MiguelMontesLorenzo.png" style="border-radius: 50%;" width="50" height="50">
   </a>
 </div>
 
