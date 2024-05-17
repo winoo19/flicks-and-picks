@@ -12,11 +12,11 @@
 <details>
   <summary>Table of Contents</summary>
   <ol>
-    <li><a href="#about-the-project">About The Project</a></li>
-    <li><a href="#features">Features</a></li>
-    <li><a href="#installation">Installation</a></li>
-    <li><a href="#functional-demo">Functional Demo</a></li>
-    <li><a href="#contributors">Contributors</a></li>
+    <li><a href="#memo-about-the-project">About The Project</a></li>
+    <li><a href="#star-features">Features</a></li>
+    <li><a href="#rocket-installation">Installation</a></li>
+    <li><a href="#clapper-functional-demo">Functional Demo</a></li>
+    <li><a href="#-contributors">Contributors</a></li>
   </ol>
 </details>
 
