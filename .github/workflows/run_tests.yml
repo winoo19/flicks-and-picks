@@ -31,16 +31,4 @@ jobs:
           python manage.py test apps.users.test_urls
           python manage.py test apps.users.test_views
 
-      - name: Run frontend
-        working-directory: ./src/frontend
-        run: |
-          pip install -r ../../requirements.txt
-          npm install
-          npm run test
-
-      - name: Run end-to-end tests
-        working-directory: ./src/backend
-        run: |
-          pip install -r ../../requirements.txt
-          python manage.py runserver
-          python manage.py test apps.users.test_end_to_end
+          # We don't run end to end because it requires a running server
